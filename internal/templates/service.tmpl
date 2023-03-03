@@ -1,0 +1,255 @@
+package service
+
+import (
+	"context"
+	"math"
+	"strings"
+	{{if .ImportTime}}"time"{{end}}
+	"{{.RelativePath}}/crud"
+	"{{.RelativePath}}/crud/{{.PackageName}}"
+	"{{.RelativePath}}/api"
+	
+	"github.com/hongshengjie/crud/xsql"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
+
+)
+{{ $pkgName := .PackageName}}
+{{ $tableName := .GoTableName}}
+
+// {{.GoTableName}}ServiceImpl {{.GoTableName}}ServiceImpl
+type {{.GoTableName}}ServiceImpl struct {
+	api.Unimplemented{{.GoTableName}}ServiceServer
+	Client *crud.Client
+}
+
+type IValidate{{.GoTableName}} interface {
+	Validate{{.GoTableName}}(a *api.{{.GoTableName}}) error
+}
+
+// Create{{.GoTableName}} Create{{.GoTableName}}
+func (s *{{.GoTableName}}ServiceImpl) Create{{.GoTableName}}(ctx context.Context, req *api.{{.GoTableName}}) (*api.{{.GoTableName}}, error) {
+	if checker, ok := interface{}(s).(IValidate{{.GoTableName}}); ok {
+		if err := checker.Validate{{.GoTableName}}(req); err != nil {
+			return nil, err
+		}
+	}
+
+	a := &{{.PackageName}}.{{.GoTableName}}{
+		{{- range $index,$field := .Fields }}
+			{{- if ne .GoColumnType  "time.Time"}}
+				{{- if eq $field.IsAutoIncrment true}}
+					{{$field.GoColumnName}}:0,
+				{{- else }}
+    				{{$field.GoColumnName}}:req.Get{{$field.GoColumnName}}(),
+				{{- end}}
+			{{- else}}
+				{{- if eq .IsDefaultCurrentTimestamp true}}	
+					{{$field.GoColumnName}}:time.Now(),
+				{{- end}}
+			{{- end}}  
+		{{- end}}  
+	}
+	var err error
+	{{- range $index,$field := .Fields }}
+			{{- if eq .GoColumnType  "time.Time"}}
+				{{- if eq .IsDefaultCurrentTimestamp false}}
+					{{- if eq $field.DataType "date"}}
+						if a.{{$field.GoColumnName}}, err = time.ParseInLocation("2006-01-02", req.Get{{$field.GoColumnName}}(), time.Local); err != nil {
+							return nil, err
+						}
+					{{- else }}
+						if a.{{$field.GoColumnName}}, err = time.ParseInLocation("2006-01-02 15:04:05", req.Get{{$field.GoColumnName}}(), time.Local); err != nil {
+							return nil, err
+						}
+					{{- end}}
+				{{- end}}
+			{{- end}}  
+	{{- end}}  
+	_, err = s.Client.{{.GoTableName}}.
+		Create().
+		Set{{.GoTableName}}(a).
+		Save(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	// query after create and return
+	a2, err := s.Client.Master.{{.GoTableName}}.
+		Find().
+		Where(
+			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}EQ(a.{{.PrimaryKey.GoColumnName}}),
+		).
+		One(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return convert{{.GoTableName}}(a2), nil
+}
+
+// Delete{{.GoTableName}} Delete{{.GoTableName}}
+func (s *{{.GoTableName}}ServiceImpl) Delete{{.GoTableName}}(ctx context.Context, req *api.{{.GoTableName}}{{.PrimaryKey.GoColumnName}}) (*emptypb.Empty, error) {
+	_, err := s.Client.{{.GoTableName}}.
+		Delete().
+		Where(
+			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}EQ(req.Get{{.PrimaryKey.GoColumnName}}()),
+		).
+		Exec(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &emptypb.Empty{}, nil
+}
+
+// Update{{.PackageName}} Update{{.GoTableName}}
+func (s *{{.GoTableName}}ServiceImpl) Update{{.GoTableName}}(ctx context.Context, req *api.Update{{.GoTableName}}Req) (*api.{{.GoTableName}}, error) {
+	if checker, ok := interface{}(s).(IValidate{{.GoTableName}}); ok {
+		if err := checker.Validate{{.GoTableName}}(req.{{.GoTableName}}); err != nil {
+			return nil, err
+		}
+	}
+	if len(req.GetUpdateMask()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty filter condition")
+	}
+	update := s.Client.{{.GoTableName}}.Update()
+	for _, v := range req.GetUpdateMask() {
+		switch v {	
+		{{- range $index,$field := .Fields }}
+		
+			{{- if eq $field.IsPrimaryKey false}}
+				case {{$pkgName}}.{{$field.GoColumnName}}:
+				{{- if eq .GoColumnType  "time.Time"}}
+					{{- if eq $field.DataType "date" }}
+						t, err := time.ParseInLocation("2006-01-02", req.Get{{$tableName}}().Get{{$field.GoColumnName}}(), time.Local)
+						if err != nil {
+							return nil, status.Error(codes.InvalidArgument, err.Error())
+						}
+						update.Set{{$field.GoColumnName}}(t)
+					{{- else }}
+						t, err := time.ParseInLocation("2006-01-02 15:04:05", req.Get{{$tableName}}().Get{{$field.GoColumnName}}(), time.Local)
+						if err != nil {
+							return nil, status.Error(codes.InvalidArgument, err.Error())
+						}
+						update.Set{{$field.GoColumnName}}(t)
+					{{- end }}
+				{{- else}}
+				update.Set{{$field.GoColumnName}}(req.Get{{$tableName}}().Get{{$field.GoColumnName}}())	
+				{{- end}}
+			
+			{{- end}}
+		{{- end}}  
+		}
+	}
+	_, err := update.
+		Where(
+			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}EQ(req.Get{{.GoTableName}}().Get{{.PrimaryKey.GoColumnName}}()),
+		).
+		Save(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	// query after update and return
+	a, err := s.Client.Master.{{.GoTableName}}.
+		Find().
+		Where(
+			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}EQ(req.Get{{.GoTableName}}().Get{{.PrimaryKey.GoColumnName}}()),
+		).
+		One(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return convert{{.GoTableName}}(a), nil
+}
+
+// Get{{.GoTableName}} Get{{.GoTableName}}
+func (s *{{.GoTableName}}ServiceImpl) Get{{.GoTableName}}(ctx context.Context, req *api.{{.GoTableName}}{{.PrimaryKey.GoColumnName}}) (*api.{{.GoTableName}}, error) {
+	a, err := s.Client.{{.GoTableName}}.
+		Find().
+		Where(
+			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}EQ(req.Get{{.PrimaryKey.GoColumnName}}()),
+		).
+		One(ctx)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	return convert{{.GoTableName}}(a), nil
+}
+
+// List{{.GoTableName}}s List{{.GoTableName}}s
+func (s *{{.GoTableName}}ServiceImpl) List{{.GoTableName}}s(ctx context.Context, req *api.List{{.GoTableName}}sReq) (*api.List{{.GoTableName}}sResp, error) {
+	page := req.GetPage()
+	size := req.GetPageSize()
+	if size <= 0 {
+		size = 20
+	}
+	offset := size * (page - 1)
+	if offset < 0 {
+		offset = 0
+	}
+	finder := s.Client.{{.GoTableName}}.
+		Find().
+		Offset(offset).
+		Limit(size)
+
+	if req.GetOrderByField() == api.{{.GoTableName}}Field_{{.GoTableName}}_unknow {
+		req.OrderByField = api.{{.GoTableName}}Field_{{.GoTableName}}_{{.PrimaryKey.ColumnName}}
+	}
+	odb := strings.TrimPrefix(req.GetOrderByField().String(), "{{.GoTableName}}_")
+	if req.GetOrderByDesc() {
+		finder.OrderDesc(odb)
+	} else {
+		finder.OrderAsc(odb)
+	}
+	counter := s.Client.{{.GoTableName}}.
+		Find().
+		Count()
+
+	var ps []*xsql.Predicate
+	for _, v := range req.GetFilters() {
+		p, err := xsql.GenP(strings.TrimPrefix(v.Field.String(), "{{.GoTableName}}_"), v.Op, v.Value)
+		if err != nil {
+			return nil, err
+		}
+		ps = append(ps, p)
+	}
+	if len(ps) > 0 {
+		p := xsql.And(ps...)
+		finder.WhereP(p)
+		counter.WhereP(p)
+	}
+	list, err := finder.All(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	count, err := counter.Int64(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	pageCount := int32(math.Ceil(float64(count) / float64(size)))
+
+	return &api.List{{.GoTableName}}sResp{ {{.GoTableName}}s: convert{{.GoTableName}}List(list), TotalCount: int32(count), PageCount: pageCount}, nil
+}
+
+func convert{{.GoTableName}}(a *{{.PackageName}}.{{.GoTableName}}) *api.{{.GoTableName}} {
+	return &api.{{.GoTableName}}{
+		{{- range $index,$field := .Fields }}
+		{{- if eq .GoColumnType  "time.Time"}}
+			{{- if eq .DataType "date"}}
+			{{$field.GoColumnName}}:a.{{$field.GoColumnName}}.Format("2006-01-02"),
+			{{- else}}
+			{{$field.GoColumnName}}:a.{{$field.GoColumnName}}.Format("2006-01-02 15:04:05"),
+			{{- end}} 
+		{{- else}}
+			{{$field.GoColumnName}}:a.{{$field.GoColumnName}},
+		{{- end}}	
+		{{- end}}  
+	}
+}
+
+func convert{{.GoTableName}}List(list []*{{.PackageName}}.{{.GoTableName}}) []*api.{{.GoTableName}} {
+	ret := make([]*api.{{.GoTableName}}, 0, len(list))
+	for _, v := range list {
+		ret = append(ret, convert{{.GoTableName}}(v))
+	}
+	return ret
+}
