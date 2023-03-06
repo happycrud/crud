@@ -67,6 +67,13 @@ func ParseMongoStruct(filePath, structName string) *Document {
 				}
 			}
 
+			if f.Name == "" {
+				v2, ok2 := reflect.StructTag(strings.Trim(field.Tag.Value, "`")).Lookup("json")
+				if ok2 && len(v2) > 0 {
+					f.Name = strings.Split(v2, ",")[0]
+				}
+			}
+
 		} else {
 			f.Name = strings.ToLower(f.GoName)
 		}
