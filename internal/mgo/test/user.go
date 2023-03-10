@@ -55,7 +55,7 @@ func (f *FinderBuilder) Sort(field string, desc bool) *FinderBuilder {
 	if desc {
 		i = -1
 	}
-	f.opts.SetSort(primitive.E{Key: field, Value: i})
+	f.opts.SetSort(primitive.D{{Key: field, Value: i}})
 	return f
 }
 

@@ -34,7 +34,7 @@ func FindUser(coll *mongo.Collection) {
 	q := mgo.And(mgo.In(Name, "aa"))
 	qq, _ := json.Marshal(q.Query())
 	fmt.Println(string(qq))
-	u, err := Find(coll).Filter(q.Query()...).All(context.Background())
+	u, err := Find(coll).Filter(q.Query()...).Limit(1).Skip(1).Sort(Age, true).All(context.Background())
 	b, _ := json.Marshal(u)
 	fmt.Println(string(b), err)
 }
