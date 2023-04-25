@@ -195,7 +195,7 @@ fmt.Println(effect, err, a)
 ```go
 u, err = user.
 	Find(db).
-	Where(user.IDEQ(1)).
+	Where(user.IdOps.EQ(1)).
 	One(ctx)
 
 fmt.Println(u, err)
@@ -208,7 +208,7 @@ fmt.Println(u, err)
 list, err := user.
 	Find(db).
 	Where(
-		user.AgeIn(18, 20, 30),
+		user.AgeOps.In(18, 20, 30),
 		).
 	All(ctx)
 
@@ -220,8 +220,8 @@ fmt.Printf("%+v %+v \n", string(liststr), err)
 ```go
 list, err := user.Find(db)).
 	Where(user.Or(
-		user.IDGT(97),
-		user.AgeIn(10, 20, 30),
+		user.IdOps.GT(97),
+		user.AgeOps.In(10, 20, 30),
 		)).
 	OrderAsc(user.Age).
 	Offset(2).
@@ -235,14 +235,14 @@ fmt.Printf("%+v %+v \n", list, err)
 list, err := user.
 	Find(db).
 	Where(
-		user.NameContains("java"),
+		user.NameOps.Contains("java"),
 		).
 	All(ctx)
 
 list, err = user.
 	Find(db).
 	Where(
-		user.NameHasPrefix("java"),
+		user.NameOps.HasPrefix("java"),
 		).
 	All(ctx)
 ```
@@ -254,7 +254,7 @@ list, err = user.
 count, err := user.
 	Find(db).
 	Count().
-	Where(user.IDGT(0)).
+	Where(user.IdOps.GT(0)).
 	Int64(ctx)
 
 fmt.Println(count, err)
@@ -264,7 +264,7 @@ names, err := user.
 	Select(user.Name).
 	Limit(2).
 	Where(
-		user.IDIn(1, 2, 3, 4),
+		user.IdOps.In(1, 2, 3, 4),
 		).
 	Strings(ctx)
 fmt.Println(names, err)
@@ -278,14 +278,14 @@ fmt.Println(names, err)
 us, _ := user.Find(db).
 	Select().
 	Where(
-		user.AgeGT(10),
+		user.AgeOps.GT(10),
 	).
 	All(ctx)
 
 us2, _ := user.Find(db).
 	Select(user.Columns()...).
 	Where(
-		user.AgeGT(10),
+		user.AgeOps.GT(10),
 	).
 	All(ctx)
 
@@ -317,7 +317,7 @@ effect, err := user.
 	Update(tx).
 	SetAge(100).
 	Where(
-		user.IDEQ(u1.ID)
+		user.IdOps.EQ(u1.ID)
 		).
 	Save(ctx)
 
@@ -398,8 +398,8 @@ effect, err = user.
 	Delete(db).
 	Where(
 		user.And(
-			user.IDEQ(3), 
-			user.IDIn(1, 3),
+			user.IdOps.EQ(3), 
+			user.IdOps.In(1, 3),
 		)).
 	Exec(ctx)
 
@@ -465,7 +465,6 @@ example/
 usr.api.proto
 ```proto
 syntax="proto3";
-package user;
 option go_package = "/api";
 
 import "google/protobuf/empty.proto";
@@ -480,19 +479,28 @@ service UserService {
 
 message User {
     //id字段
-    int64	id = 1 ;
+    int64	id = 1 ; // @gotags: json:"id"
     //名称
-    string	name = 2 ;
+    string	name = 2 ; // @gotags: json:"name"
     //年龄
-    int64	age = 3 ;
+    int64	age = 3 ; // @gotags: json:"age"
     //创建时间
-    string	ctime = 4 ;
+    string	ctime = 4 ; // @gotags: json:"ctime"
     //更新时间
-    string	mtime = 5 ;  
+    string	mtime = 5 ; // @gotags: json:"mtime"  
+}
+
+enum UserField{
+    User_unknow = 0;
+    User_id = 1;
+    User_name = 2;
+    User_age = 3;
+    User_ctime = 4;
+    User_mtime = 5;   
 }
 
 message UserId{
-    int64 id = 1 ;
+    int64 id = 1 ; // @gotags: form:"id"
 }
 
 message UpdateUserReq{
@@ -504,30 +512,31 @@ message UpdateUserReq{
 
 
 message ListUsersReq{
-    // 
-    int64 page = 1 ;
+    // number of page
+    int32 page = 1 ;// @gotags: form:"page"
     // default 20
-    int64 page_size = 2 ;
-    // order by  for example :  [-id]  -表示：倒序排序
-    string orderby = 3 ; 
+    int32 page_size = 2 ;// @gotags: form:"page_size"
+    // order by field
+    UserField order_by_field = 3 ; // @gotags: form:"order_by_field"
+    // ASC DESC
+    bool order_by_desc = 4; //@gotags: form:"order_by_desc"
      // filter
-    repeated UserFilter filter = 4 ;
+    repeated UserFilter filters = 5 ; //@gotags: form:"filters"
 }
 
 message UserFilter{
-    string field = 1;
+     UserField field = 1;
     string op = 2;
     string value = 3;
 }
 
-
 message ListUsersResp{
 
-    repeated User users = 1 ;
+    repeated User users = 1 ; // @gotags: json:"users"
 
-    int64 total_count = 2 ;
+    int32 total_count = 2 ; // @gotags: json:"total_count"
     
-    int64 page_count = 3 ;
+    int32 page_count = 3 ; // @gotags: json:"page_count"
 }
 
 ```
@@ -540,29 +549,37 @@ package service
 
 import (
 	"context"
-	"errors"
-	"github.com/happycrud/crud/internal/example/api"
-	"github.com/happycrud/crud/internal/example/crud"
-	"github.com/happycrud/crud/internal/example/crud/user"
-	"github.com/happycrud/crud/xsql"
-	"google.golang.org/protobuf/types/known/emptypb"
+	"github.com/happycrud/crud/example/api"
+	"github.com/happycrud/crud/example/crud"
+	"github.com/happycrud/crud/example/crud/user"
 	"math"
 	"strings"
 	"time"
+
+	"github.com/happycrud/crud/xsql"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // UserServiceImpl UserServiceImpl
 type UserServiceImpl struct {
+	api.UnimplementedUserServiceServer
 	Client *crud.Client
+}
+
+type IValidateUser interface {
+	ValidateUser(a *api.User) error
 }
 
 // CreateUser CreateUser
 func (s *UserServiceImpl) CreateUser(ctx context.Context, req *api.User) (*api.User, error) {
+	if checker, ok := interface{}(s).(IValidateUser); ok {
+		if err := checker.ValidateUser(req); err != nil {
+			return nil, err
+		}
+	}
 
-	// do some parameter check
-	// if req.GetXXXX() != 0 {
-	// 	return nil, errors.New(-1, "参数错误")
-	// }
 	a := &user.User{
 		Id:    0,
 		Name:  req.GetName(),
@@ -576,79 +593,83 @@ func (s *UserServiceImpl) CreateUser(ctx context.Context, req *api.User) (*api.U
 		SetUser(a).
 		Save(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	// query after create and return
 	a2, err := s.Client.Master.User.
 		Find().
 		Where(
-			user.IdEQ(a.Id),
+			user.IdOps.EQ(a.Id),
 		).
 		One(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return convertUser(a2), nil
 }
 
 // DeleteUser DeleteUser
-func (s *UserServiceImpl) DeletesUser(ctx context.Context, req *api.UserId) (*emptypb.Empty, error) {
+func (s *UserServiceImpl) DeleteUser(ctx context.Context, req *api.UserId) (*emptypb.Empty, error) {
 	_, err := s.Client.User.
 		Delete().
 		Where(
-			user.IdEQ(req.GetId()),
+			user.IdOps.EQ(req.GetId()),
 		).
 		Exec(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &emptypb.Empty{}, nil
 }
 
 // Updateuser UpdateUser
 func (s *UserServiceImpl) UpdateUser(ctx context.Context, req *api.UpdateUserReq) (*api.User, error) {
-
+	if checker, ok := interface{}(s).(IValidateUser); ok {
+		if err := checker.ValidateUser(req.User); err != nil {
+			return nil, err
+		}
+	}
 	if len(req.GetUpdateMask()) == 0 {
-		return nil, errors.New("update_mask empty")
+		return nil, status.Error(codes.InvalidArgument, "empty filter condition")
 	}
 	update := s.Client.User.Update()
 	for _, v := range req.GetUpdateMask() {
 		switch v {
-		case "user.name":
+		case user.Name:
 			update.SetName(req.GetUser().GetName())
-		case "user.age":
+		case user.Age:
 			update.SetAge(req.GetUser().GetAge())
-		case "user.ctime":
+		case user.Ctime:
 			t, err := time.ParseInLocation("2006-01-02 15:04:05", req.GetUser().GetCtime(), time.Local)
 			if err != nil {
-				return nil, err
+				return nil, status.Error(codes.InvalidArgument, err.Error())
 			}
 			update.SetCtime(t)
-		case "user.mtime":
+		case user.Mtime:
 			t, err := time.ParseInLocation("2006-01-02 15:04:05", req.GetUser().GetMtime(), time.Local)
 			if err != nil {
-				return nil, err
+				return nil, status.Error(codes.InvalidArgument, err.Error())
 			}
 			update.SetMtime(t)
 		}
 	}
 	_, err := update.
 		Where(
-			user.IdEQ(req.GetUser().GetId()),
+			user.IdOps.EQ(req.GetUser().GetId()),
 		).
 		Save(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	// query after update and return
 	a, err := s.Client.Master.User.
 		Find().
 		Where(
-			user.IdEQ(req.GetUser().GetId()),
+			user.IdOps.EQ(req.GetUser().GetId()),
 		).
 		One(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return convertUser(a), nil
 }
@@ -658,11 +679,11 @@ func (s *UserServiceImpl) GetUser(ctx context.Context, req *api.UserId) (*api.Us
 	a, err := s.Client.User.
 		Find().
 		Where(
-			user.IdEQ(req.GetId()),
+			user.IdOps.EQ(req.GetId()),
 		).
 		One(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 	return convertUser(a), nil
 }
@@ -683,39 +704,43 @@ func (s *UserServiceImpl) ListUsers(ctx context.Context, req *api.ListUsersReq) 
 		Offset(offset).
 		Limit(size)
 
-	if req.GetOrderby() != "" {
-		odb := strings.TrimPrefix(req.GetOrderby(), "-")
-		if odb == req.GetOrderby() {
-			finder.OrderAsc(odb)
-		} else {
-			finder.OrderDesc(odb)
-		}
+	if req.GetOrderByField() == api.UserField_User_unknow {
+		req.OrderByField = api.UserField_User_id
+	}
+	odb := strings.TrimPrefix(req.GetOrderByField().String(), "User_")
+	if req.GetOrderByDesc() {
+		finder.OrderDesc(odb)
+	} else {
+		finder.OrderAsc(odb)
 	}
 	counter := s.Client.User.
 		Find().
 		Count()
 
 	var ps []*xsql.Predicate
-	for _, v := range req.GetFilter() {
-		p, err := xsql.GenP(v.Field, v.Op, v.Value)
+	for _, v := range req.GetFilters() {
+		p, err := xsql.GenP(strings.TrimPrefix(v.Field.String(), "User_"), v.Op, v.Value)
 		if err != nil {
 			return nil, err
 		}
 		ps = append(ps, p)
 	}
-
-	list, err := finder.WhereP(ps...).All(ctx)
-	if err != nil {
-		return nil, err
+	if len(ps) > 0 {
+		p := xsql.And(ps...)
+		finder.WhereP(p)
+		counter.WhereP(p)
 	}
-
-	count, err := counter.WhereP(ps...).Int64(ctx)
+	list, err := finder.All(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
-	pageCount := int64(math.Ceil(float64(count) / float64(size)))
+	count, err := counter.Int64(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	pageCount := int32(math.Ceil(float64(count) / float64(size)))
 
-	return &api.ListUsersResp{Users: convertUserList(list), TotalCount: count, PageCount: pageCount}, nil
+	return &api.ListUsersResp{Users: convertUserList(list), TotalCount: int32(count), PageCount: pageCount}, nil
 }
 
 func convertUser(a *user.User) *api.User {
@@ -735,6 +760,7 @@ func convertUserList(list []*user.User) []*api.User {
 	}
 	return ret
 }
+
 
 
 ```
