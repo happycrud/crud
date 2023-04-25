@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -16,6 +17,18 @@ const (
 	bigtypeCompareTime   = 3
 	bigtypeCompareBit    = 4
 )
+
+func GoTypeToWhereFunc(gt, gn string) string {
+	switch gt {
+	case "int", "int64", "int32", "int16", "int8", "uint", "uint64", "uint32", "uint16", "uint8", "float32", "float64", "[]byte":
+		return fmt.Sprintf("var %sOps xsql.FieldOps[%s] = xsql.FieldOps[%s]{Name: %s}", gn, gt, gt, gn)
+	case "string":
+		return fmt.Sprintf("var %sOps xsql.StrFieldOps = xsql.StrFieldOps{FieldOps: xsql.FieldOps[string]{Name:%s}}", gn, gn)
+	case "time.Time":
+		return fmt.Sprintf("var %sOps xsql.FieldOps[string] = xsql.FieldOps[string]{Name:%s}", gn, gn)
+	}
+	return ""
+}
 
 // MysqlToGoFieldType MysqlToGoFieldType
 func MysqlToGoFieldType(dt, ct string) (string, int) {

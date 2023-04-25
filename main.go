@@ -55,6 +55,7 @@ var protopkg string
 var reactgrommet bool
 var mgo string
 var struct2pb string
+var notint64 bool
 
 // var fields string
 const defaultDir = "crud"
@@ -63,6 +64,7 @@ func init() {
 	//flag.StringVar(&path, "path", "cr", ".sql file path or folder")
 	flag.BoolVar(&service, "service", false, "-service  generate GRPC proto message and service implementation")
 	flag.BoolVar(&http, "http", false, "-http  generate Gin controller")
+	flag.BoolVar(&notint64, "notint64", false, "-notint64  do not generate intger field to int64 gotype")
 	flag.BoolVar(&reactgrommet, "reactgrommet", false, "-reactgrommet  generate reactgrommet tsx code work with -service")
 	flag.StringVar(&protopkg, "protopkg", "", "-protopkg  proto package field value")
 	flag.StringVar(&mgo, "mgo", "", "-mgo find struct from file and generate crud method example  ./user.go:User  User struct in ./user.go file ")
@@ -156,7 +158,7 @@ func tableFromSql(path string) (tableObjs []*model.Table, isDir bool) {
 		}
 		for _, v := range fs {
 			if !v.IsDir() && strings.HasSuffix(strings.ToLower(v.Name()), ".sql") {
-				obj := model.MysqlTable(database, filepath.Join(path, v.Name()), relativePath)
+				obj := model.MysqlTable(database, filepath.Join(path, v.Name()), relativePath, notint64)
 				if obj != nil {
 					tableObjs = append(tableObjs, obj)
 				}
@@ -165,7 +167,7 @@ func tableFromSql(path string) (tableObjs []*model.Table, isDir bool) {
 
 		}
 	} else {
-		tableObjs = append(tableObjs, model.MysqlTable(database, path, relativePath))
+		tableObjs = append(tableObjs, model.MysqlTable(database, path, relativePath, notint64))
 	}
 	return tableObjs, isDir
 }
@@ -175,6 +177,7 @@ var f = template.FuncMap{
 	"isnumber":                       model.IsNumber,
 	"Incr":                           model.Incr,
 	"GoTypeToTypeScriptDefaultValue": model.GoTypeToTypeScriptDefaultValue,
+	"GoTypeToWhereFunc":              model.GoTypeToWhereFunc,
 }
 
 func generateFiles(tableObj *model.Table) {

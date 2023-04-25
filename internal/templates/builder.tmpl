@@ -119,7 +119,7 @@ func (d *DeleteBuilder)Timeout(t time.Duration) *DeleteBuilder {
 }
 
 // Where  {{$tableName}}Where
-func (d *DeleteBuilder) Where(p ...{{$tableName}}Where) *DeleteBuilder {
+func (d *DeleteBuilder) Where(p ...xsql.WhereFunc) *DeleteBuilder {
 	s := &xsql.Selector{}
 	for _, v := range p {
 		v(s)
@@ -176,7 +176,7 @@ func (s *SelectBuilder) Count(columns ...string) *SelectBuilder {
 }
 
 //Where where
-func (s *SelectBuilder) Where(p ...{{$tableName}}Where) *SelectBuilder {
+func (s *SelectBuilder) Where(p ...xsql.WhereFunc) *SelectBuilder {
 	sel := &xsql.Selector{}
 	for _, v := range p {
 		v(sel)
@@ -369,7 +369,7 @@ func (u *UpdateBuilder)Timeout(t time.Duration) *UpdateBuilder {
 }
 
 // Where Where
-func (u *UpdateBuilder) Where(p ...{{$tableName}}Where) *UpdateBuilder {
+func (u *UpdateBuilder) Where(p ...xsql.WhereFunc) *UpdateBuilder {
 	s := &xsql.Selector{}
 	for _, v := range p {
 		v(s)

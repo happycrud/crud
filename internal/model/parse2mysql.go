@@ -40,7 +40,7 @@ type Column struct {
 	ProtoType                 string // protoType
 }
 
-func MysqlColumn(ddl *sqlparser.DDL) ([]*Column, error) {
+func MysqlColumn(ddl *sqlparser.DDL, notint64 bool) ([]*Column, error) {
 
 	res := []*Column{}
 	for k, v := range ddl.TableSpec.Columns {
@@ -78,7 +78,7 @@ func MysqlColumn(ddl *sqlparser.DDL) ([]*Column, error) {
 
 		c.GoColumnName = GoCamelCase(c.ColumnName)
 		c.GoColumnType, c.BigType = MysqlToGoFieldType(c.DataType, c.ColumnType)
-		if strings.Contains(c.GoColumnType, "int") {
+		if strings.Contains(c.GoColumnType, "int") && !notint64 {
 			c.GoColumnType = "int64"
 		}
 		c.GoConditionType = c.GoColumnType
@@ -106,7 +106,7 @@ func MysqlColumn(ddl *sqlparser.DDL) ([]*Column, error) {
 	return res, nil
 }
 
-func MysqlTable(db, path, relative string) *Table {
+func MysqlTable(db, path, relative string, notint64 bool) *Table {
 	sql, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
@@ -131,7 +131,7 @@ func MysqlTable(db, path, relative string) *Table {
 		GoTableName: gotableName,
 		PackageName: strings.ToLower(gotableName),
 	}
-	columns, err := MysqlColumn(ddl)
+	columns, err := MysqlColumn(ddl, notint64)
 	if err != nil {
 		log.Fatal(err)
 	}
