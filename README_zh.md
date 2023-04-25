@@ -21,14 +21,14 @@ crud 是一个非常易学好用的ORM框架，使用crud可以让你快速，�
 - 表结构变更可以记录在仓库中
 - 支持根据SQL DDL表结构定义文件生成包含GRPC接口定义的proto文件 和 Service半实现代码
 
-## [example](https://github.com/hongshengjie/crud-exmaple)
+## [example](https://github.com/happycrud/crud-exmaple)
 ## 开始
 
 ### 安装
 
 ```bash
 
-go install  github.com/hongshengjie/crud@latest
+go install  github.com/happycrud/crud@latest
 
 ```
 ### 使用命令行
@@ -541,10 +541,10 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/hongshengjie/crud/internal/example/api"
-	"github.com/hongshengjie/crud/internal/example/crud"
-	"github.com/hongshengjie/crud/internal/example/crud/user"
-	"github.com/hongshengjie/crud/xsql"
+	"github.com/happycrud/crud/internal/example/api"
+	"github.com/happycrud/crud/internal/example/crud"
+	"github.com/happycrud/crud/internal/example/crud/user"
+	"github.com/happycrud/crud/xsql"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"math"
 	"strings"

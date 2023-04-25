@@ -34,7 +34,7 @@ Crud is a very easy to learn and easy to use ORM framework. Using crud can enabl
 - Support the generation of proto files and service semi implementation codes containing grpc interface definitions according to SQL DDL table structure definition files
 
 
-## [example](https://github.com/hongshengjie/crud-exmaple)
+## [example](https://github.com/happycrud/crud-exmaple)
 
 ## Getting Started 
 
@@ -42,7 +42,7 @@ Crud is a very easy to learn and easy to use ORM framework. Using crud can enabl
 
 ```bash
 
-go install  github.com/hongshengjie/crud@latest
+go install  github.com/happycrud/crud@latest
 
 ```
 ### Using the command line
@@ -567,10 +567,10 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/hongshengjie/crud/internal/example/api"
-	"github.com/hongshengjie/crud/internal/example/crud"
-	"github.com/hongshengjie/crud/internal/example/crud/user"
-	"github.com/hongshengjie/crud/xsql"
+	"github.com/happycrud/crud/internal/example/api"
+	"github.com/happycrud/crud/internal/example/crud"
+	"github.com/happycrud/crud/internal/example/crud/user"
+	"github.com/happycrud/crud/xsql"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"math"
 	"strings"
