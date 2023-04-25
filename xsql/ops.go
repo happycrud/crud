@@ -1,39 +1,48 @@
 package xsql
 
+import "golang.org/x/exp/constraints"
+
 type WhereFunc func(*Selector)
 
-type FieldOps[T int | int64 | int32 | int16 | int8 | uint | uint64 | uint32 | uint16 | uint8 | float32 | float64 | []byte | string] struct {
-	Name string
+type Ops interface {
+	constraints.Float | constraints.Integer | []byte | string
+}
+type FieldOps[T Ops] struct {
+	name string
+}
+
+func NewFieldOps[T Ops](name string) FieldOps[T] {
+	return FieldOps[T]{name: name}
 }
 
 func (f FieldOps[T]) EQ(arg T) WhereFunc {
 	return func(s *Selector) {
-		s.Where(EQ(f.Name, arg))
+		s.Where(EQ(f.name, arg))
 	}
 }
 func (f FieldOps[T]) NEQ(arg T) WhereFunc {
 	return func(s *Selector) {
-		s.Where(NEQ(f.Name, arg))
+		s.Where(NEQ(f.name, arg))
 	}
 }
 func (f FieldOps[T]) LT(arg T) WhereFunc {
 	return func(s *Selector) {
-		s.Where(LT(f.Name, arg))
+		s.Where(LT(f.name, arg))
 	}
 }
 func (f FieldOps[T]) LTE(arg T) WhereFunc {
 	return func(s *Selector) {
-		s.Where(LTE(f.Name, arg))
+		s.Where(LTE(f.name, arg))
 	}
 }
 func (f FieldOps[T]) GT(arg T) WhereFunc {
 	return func(s *Selector) {
-		s.Where(GT(f.Name, arg))
+		s.Where(GT(f.name, arg))
 	}
 }
 func (f FieldOps[T]) GTE(arg T) WhereFunc {
 	return func(s *Selector) {
-		s.Where(GTE(f.Name, arg))
+		s.Where(GTE(f.name, arg))
 	}
 }
 func (f FieldOps[T]) In(args ...T) WhereFunc {
@@ -46,7 +55,7 @@ func (f FieldOps[T]) In(args ...T) WhereFunc {
 		for i := range v {
 			v[i] = args[i]
 		}
-		s.Where(In(f.Name, v...))
+		s.Where(In(f.name, v...))
 	}
 }
 func (f FieldOps[T]) NotIn(args ...T) WhereFunc {
@@ -59,7 +68,7 @@ func (f FieldOps[T]) NotIn(args ...T) WhereFunc {
 		for i := range v {
 			v[i] = args[i]
 		}
-		s.Where(NotIn(f.Name, v...))
+		s.Where(NotIn(f.name, v...))
 	}
 }
 
@@ -67,14 +76,18 @@ type StrFieldOps struct {
 	FieldOps[string]
 }
 
+func NewStrFieldOps(name string) StrFieldOps {
+	return StrFieldOps{FieldOps[string]{name: name}}
+}
+
 func (f StrFieldOps) HasPrefix(arg string) WhereFunc {
 	return func(s *Selector) {
-		s.Where(HasPrefix(f.Name, arg))
+		s.Where(HasPrefix(f.name, arg))
 	}
 }
 
 func (f StrFieldOps) Contains(arg string) WhereFunc {
 	return func(s *Selector) {
-		s.Where(Contains(f.Name, arg))
+		s.Where(Contains(f.name, arg))
 	}
 }

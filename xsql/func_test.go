@@ -6,10 +6,10 @@ import (
 )
 
 func Test_EQ(t *testing.T) {
-	var a StrFieldOps
-	a.Name = "xxx"
-	f := a.EQ("asaa")
-	x := Select("xx").From(Table("use"))
+	var a = NewFieldOps[int]("age")
+
+	f := a.EQ(1)
+	x := Select("xx").From(Table("user"))
 	f(x)
 	fmt.Println(x.Query())
 
