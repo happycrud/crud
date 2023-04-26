@@ -59,17 +59,11 @@ func (u *{{.GoTableName}}) ScanDst(aa any, columns []string) []any {
 		dst := make([]interface{}, 0, len(columns))
 		for _, v := range columns {
 			switch v {
-			case Id:
-				dst = append(dst, &a.Id)
-			case Name:
-				dst = append(dst, &a.Name)
-			case Age:
-				dst = append(dst, &a.Age)
-			case Ctime:
-				dst = append(dst, &a.Ctime)
-			case Mtime:
-				dst = append(dst, &a.Mtime)
-			}
+			{{- range .Fields}}
+   			case {{.GoColumnName}}:
+			dst = append(dst, &a.{{.GoColumnName}})
+    		{{- end }}
+		}
 		}
 		return dst
 	}
