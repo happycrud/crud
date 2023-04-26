@@ -91,3 +91,35 @@ func (f StrFieldOps) Contains(arg string) WhereFunc {
 		s.Where(Contains(f.name, arg))
 	}
 }
+
+// And groups predicates with the AND operator between them.
+func AndOps(predicates ...WhereFunc) WhereFunc {
+	return func(s *Selector) {
+		s1 := s.Clone().SetP(nil)
+		for _, p := range predicates {
+			p(s1)
+		}
+		s.Where(s1.P())
+	}
+}
+
+// Or groups predicates with the OR operator between them.
+func OrOps(predicates ...WhereFunc) WhereFunc {
+	return func(s *Selector) {
+		s1 := s.Clone().SetP(nil)
+		for i, p := range predicates {
+			if i > 0 {
+				s1.Or()
+			}
+			p(s1)
+		}
+		s.Where(s1.P())
+	}
+}
+
+// Not applies the not operator on the given predicate.
+func NotOps(p WhereFunc) WhereFunc {
+	return func(s *Selector) {
+		p(s.Not())
+	}
+}

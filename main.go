@@ -38,6 +38,9 @@ var serviceTmpl []byte
 //go:embed "internal/templates/client.tmpl"
 var clientTmpl []byte
 
+//go:embed "internal/templates/client_generic.tmpl"
+var clientGenericTmpl []byte
+
 //go:embed "internal/templates/react-grommet.tmpl"
 var reactGrommetTmpl []byte
 
@@ -46,6 +49,9 @@ var crudMgo []byte
 
 //go:embed "internal/templates/struct2pb.tmpl"
 var struct2PB []byte
+
+//go:embed "internal/templates/generic.tmpl"
+var genericTmpl []byte
 
 var database string
 var path string
@@ -56,6 +62,7 @@ var reactgrommet bool
 var mgo string
 var struct2pb string
 var notint64 bool
+var generic bool
 
 // var fields string
 const defaultDir = "crud"
@@ -65,6 +72,7 @@ func init() {
 	flag.BoolVar(&service, "service", false, "-service  generate GRPC proto message and service implementation")
 	flag.BoolVar(&http, "http", false, "-http  generate Gin controller")
 	flag.BoolVar(&notint64, "notint64", false, "-notint64  do not generate intger field to int64 gotype")
+	flag.BoolVar(&generic, "generic", false, "-generic  generate generic code")
 	flag.BoolVar(&reactgrommet, "reactgrommet", false, "-reactgrommet  generate reactgrommet tsx code work with -service")
 	flag.StringVar(&protopkg, "protopkg", "", "-protopkg  proto package field value")
 	flag.StringVar(&mgo, "mgo", "", "-mgo find struct from file and generate crud method example  ./user.go:User  User struct in ./user.go file ")
@@ -139,7 +147,12 @@ func main() {
 		generateFiles(v)
 	}
 	if isDir && path == defaultDir {
-		generateFile(filepath.Join(defaultDir, "aa_client.go"), string(clientTmpl), f, tableObjs)
+		if generic {
+			generateFile(filepath.Join(defaultDir, "aa_client.go"), string(clientGenericTmpl), f, tableObjs)
+		} else {
+			generateFile(filepath.Join(defaultDir, "aa_client.go"), string(clientTmpl), f, tableObjs)
+		}
+
 	}
 
 }
@@ -185,9 +198,14 @@ func generateFiles(tableObj *model.Table) {
 	//创建目录
 	dir := filepath.Join(defaultDir, tableObj.PackageName)
 	os.Mkdir(dir, os.ModePerm)
-	generateFile(filepath.Join(dir, "model.go"), string(modelTmpl), f, tableObj)
-	generateFile(filepath.Join(dir, "where.go"), string(whereTmpl), f, tableObj)
-	generateFile(filepath.Join(dir, "builder.go"), string(crudTmpl), f, tableObj)
+	if generic {
+		generateFile(filepath.Join(dir, tableObj.PackageName+".go"), string(genericTmpl), f, tableObj)
+	} else {
+		generateFile(filepath.Join(dir, "model.go"), string(modelTmpl), f, tableObj)
+		generateFile(filepath.Join(dir, "where.go"), string(whereTmpl), f, tableObj)
+		generateFile(filepath.Join(dir, "builder.go"), string(crudTmpl), f, tableObj)
+	}
+
 	if service {
 		generateService(tableObj)
 	}
