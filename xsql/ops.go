@@ -85,7 +85,11 @@ func (f StrFieldOps) HasPrefix(arg string) WhereFunc {
 		s.Where(HasPrefix(f.name, arg))
 	}
 }
-
+func (f StrFieldOps) HasSuffix(arg string) WhereFunc {
+	return func(s *Selector) {
+		s.Where(HasSuffix(f.name, arg))
+	}
+}
 func (f StrFieldOps) Contains(arg string) WhereFunc {
 	return func(s *Selector) {
 		s.Where(Contains(f.name, arg))
