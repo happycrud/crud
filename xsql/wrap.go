@@ -32,9 +32,9 @@ type InsertExecutor[T Entity] struct {
 }
 
 // Create Create
-func NewInsertExecutor[T Entity](eq ExecQuerier, table string) *InsertExecutor[T] {
+func NewInsertExecutor[T Entity](eq ExecQuerier, table string, dialect string) *InsertExecutor[T] {
 	return &InsertExecutor[T]{
-		builder: Insert(table),
+		builder: Dialect(dialect).Insert(table),
 		eq:      eq,
 	}
 }
@@ -68,7 +68,7 @@ func (in *InsertExecutor[T]) Save(ctx context.Context) (int64, error) {
 
 	in.builder.Columns(in.a.Columns()...)
 	if in.upsert {
-		in.builder.OnDuplicateKeyUpdate(in.a.Columns()...)
+		in.builder.OnConflict(ResolveWithNewValues())
 	}
 	for _, a := range in.items {
 		if a.IsNil() {
@@ -113,9 +113,9 @@ type DeleteExecutor[T Entity] struct {
 }
 
 // Deleter Deleter
-func NewDeleteExecutor[T Entity](eq ExecQuerier, table string) *DeleteExecutor[T] {
+func NewDeleteExecutor[T Entity](eq ExecQuerier, table string, dialect string) *DeleteExecutor[T] {
 	return &DeleteExecutor[T]{
-		builder: Delete(table),
+		builder: Dialect(dialect).Delete(table),
 		eq:      eq,
 	}
 }
@@ -157,10 +157,10 @@ type SelectExecutor[T Entity] struct {
 }
 
 // Find Find
-func NewSelectExecutor[T Entity](eq ExecQuerier, table string) *SelectExecutor[T] {
+func NewSelectExecutor[T Entity](eq ExecQuerier, table string, dialect string) *SelectExecutor[T] {
 
 	sel := &SelectExecutor[T]{
-		builder: Select(),
+		builder: Dialect(dialect).Select(),
 		eq:      eq,
 	}
 	sel.builder = sel.builder.From(Table(table))
@@ -228,7 +228,7 @@ func (s *SelectExecutor[T]) OrderAsc(field string) *SelectExecutor[T] {
 
 // ForceIndex ForceIndex  FORCE INDEX (`index_name`)
 func (s *SelectExecutor[T]) ForceIndex(indexName ...string) *SelectExecutor[T] {
-	s.builder.ForceIndex(indexName...)
+	s.builder.For(LockUpdate)
 	return s
 }
 
@@ -311,7 +311,7 @@ func (s *SelectExecutor[T]) selectCheck(columns []string) error {
 // All  return all results
 func (s *SelectExecutor[T]) All(ctx context.Context) ([]T, error) {
 	var selectedColumns []string
-	if s.builder.SelectColumnsLen() <= 0 {
+	if s.builder.NoColumnSelected() {
 		s.builder.Select(s.a.Columns()...)
 		selectedColumns = s.a.Columns()
 	} else {
@@ -351,10 +351,10 @@ type UpdateExecutor[T Entity] struct {
 }
 
 // Update return a UpdateExecutor
-func NewUpdateExecutor[T Entity](eq ExecQuerier, table string) *UpdateExecutor[T] {
+func NewUpdateExecutor[T Entity](eq ExecQuerier, table string, dialect string) *UpdateExecutor[T] {
 	return &UpdateExecutor[T]{
 		eq:      eq,
-		builder: Update(table),
+		builder: Dialect(dialect).Update(table),
 	}
 }
 
