@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"sync/atomic"
 	"time"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 type ExecQuerier interface {
@@ -29,8 +27,8 @@ type Config struct {
 	ExecTimeout  time.Duration // execute sql timeout
 }
 
-func NewMySQL(c *Config) (*DB, error) {
-	m, err := connect(c.DSN, c.Active, c.Idle, c.IdleTimeout)
+func NewDB(driver string, c *Config) (*DB, error) {
+	m, err := connect(c.DSN, driver, c.Active, c.Idle, c.IdleTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +37,7 @@ func NewMySQL(c *Config) (*DB, error) {
 		rs = append(rs, m)
 	}
 	for _, v := range c.ReadDSN {
-		r, err := connect(v, c.Active, c.Idle, c.IdleTimeout)
+		r, err := connect(v, driver, c.Active, c.Idle, c.IdleTimeout)
 		if err != nil {
 			return nil, err
 		}
@@ -54,8 +52,8 @@ func NewMySQL(c *Config) (*DB, error) {
 	return db, nil
 }
 
-func connect(dsn string, active, idle int, idleTimeout time.Duration) (*sql.DB, error) {
-	m, err := sql.Open("mysql", dsn)
+func connect(dsn string, driverName string, active, idle int, idleTimeout time.Duration) (*sql.DB, error) {
+	m, err := sql.Open(driverName, dsn)
 	if err != nil {
 		return nil, err
 	}
