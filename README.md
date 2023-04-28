@@ -125,7 +125,7 @@ CREATE TABLE `user` (
 ```
 
 ```bash
-# exec bcurd under example
+# exec crud under example
 crud 
 
 # The following user directories and files will be generated
