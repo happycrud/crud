@@ -4,48 +4,48 @@ import "golang.org/x/exp/constraints"
 
 type WhereFunc func(*Selector)
 
-type Ops interface {
+type OpType interface {
 	constraints.Float | constraints.Integer | []byte | string
 }
-type FieldOps[T Ops] struct {
+type FieldOp[T OpType] struct {
 	name string
 }
 
-func NewFieldOps[T Ops](name string) FieldOps[T] {
-	return FieldOps[T]{name: name}
+func NewFieldOp[T OpType](name string) FieldOp[T] {
+	return FieldOp[T]{name: name}
 }
 
-func (f FieldOps[T]) EQ(arg T) WhereFunc {
+func (f FieldOp[T]) EQ(arg T) WhereFunc {
 	return func(s *Selector) {
 		s.Where(EQ(f.name, arg))
 	}
 }
-func (f FieldOps[T]) NEQ(arg T) WhereFunc {
+func (f FieldOp[T]) NEQ(arg T) WhereFunc {
 	return func(s *Selector) {
 		s.Where(NEQ(f.name, arg))
 	}
 }
-func (f FieldOps[T]) LT(arg T) WhereFunc {
+func (f FieldOp[T]) LT(arg T) WhereFunc {
 	return func(s *Selector) {
 		s.Where(LT(f.name, arg))
 	}
 }
-func (f FieldOps[T]) LTE(arg T) WhereFunc {
+func (f FieldOp[T]) LTE(arg T) WhereFunc {
 	return func(s *Selector) {
 		s.Where(LTE(f.name, arg))
 	}
 }
-func (f FieldOps[T]) GT(arg T) WhereFunc {
+func (f FieldOp[T]) GT(arg T) WhereFunc {
 	return func(s *Selector) {
 		s.Where(GT(f.name, arg))
 	}
 }
-func (f FieldOps[T]) GTE(arg T) WhereFunc {
+func (f FieldOp[T]) GTE(arg T) WhereFunc {
 	return func(s *Selector) {
 		s.Where(GTE(f.name, arg))
 	}
 }
-func (f FieldOps[T]) In(args ...T) WhereFunc {
+func (f FieldOp[T]) In(args ...T) WhereFunc {
 	return func(s *Selector) {
 		if len(args) == 0 {
 			s.Where(False())
@@ -58,7 +58,7 @@ func (f FieldOps[T]) In(args ...T) WhereFunc {
 		s.Where(In(f.name, v...))
 	}
 }
-func (f FieldOps[T]) NotIn(args ...T) WhereFunc {
+func (f FieldOp[T]) NotIn(args ...T) WhereFunc {
 	return func(s *Selector) {
 		if len(args) == 0 {
 			s.Where(Not(False()))
@@ -72,32 +72,32 @@ func (f FieldOps[T]) NotIn(args ...T) WhereFunc {
 	}
 }
 
-type StrFieldOps struct {
-	FieldOps[string]
+type StrFieldOp struct {
+	FieldOp[string]
 }
 
-func NewStrFieldOps(name string) StrFieldOps {
-	return StrFieldOps{FieldOps[string]{name: name}}
+func NewStrFieldOp(name string) StrFieldOp {
+	return StrFieldOp{FieldOp[string]{name: name}}
 }
 
-func (f StrFieldOps) HasPrefix(arg string) WhereFunc {
+func (f StrFieldOp) HasPrefix(arg string) WhereFunc {
 	return func(s *Selector) {
 		s.Where(HasPrefix(f.name, arg))
 	}
 }
-func (f StrFieldOps) HasSuffix(arg string) WhereFunc {
+func (f StrFieldOp) HasSuffix(arg string) WhereFunc {
 	return func(s *Selector) {
 		s.Where(HasSuffix(f.name, arg))
 	}
 }
-func (f StrFieldOps) Contains(arg string) WhereFunc {
+func (f StrFieldOp) Contains(arg string) WhereFunc {
 	return func(s *Selector) {
 		s.Where(Contains(f.name, arg))
 	}
 }
 
 // And groups predicates with the AND operator between them.
-func AndOps(predicates ...WhereFunc) WhereFunc {
+func AndOp(predicates ...WhereFunc) WhereFunc {
 	return func(s *Selector) {
 		s1 := s.Clone().SetP(nil)
 		for _, p := range predicates {
@@ -108,7 +108,7 @@ func AndOps(predicates ...WhereFunc) WhereFunc {
 }
 
 // Or groups predicates with the OR operator between them.
-func OrOps(predicates ...WhereFunc) WhereFunc {
+func OrOp(predicates ...WhereFunc) WhereFunc {
 	return func(s *Selector) {
 		s1 := s.Clone().SetP(nil)
 		for i, p := range predicates {
@@ -122,7 +122,7 @@ func OrOps(predicates ...WhereFunc) WhereFunc {
 }
 
 // Not applies the not operator on the given predicate.
-func NotOps(p WhereFunc) WhereFunc {
+func NotOp(p WhereFunc) WhereFunc {
 	return func(s *Selector) {
 		p(s.Not())
 	}

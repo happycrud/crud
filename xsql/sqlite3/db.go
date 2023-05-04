@@ -5,6 +5,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func NewSQLite(c *xsql.Config) (*xsql.DB, error) {
+func NewDB(c *xsql.Config) (*xsql.DB, error) {
 	return xsql.NewDB("sqlite3", c)
 }

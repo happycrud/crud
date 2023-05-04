@@ -7,6 +7,7 @@ import (
 	"time"
 {{end}}
     "github.com/happycrud/crud/xsql"
+	"github.com/happycrud/crud/xsql/dialect"
 )
 
 {{ $table := .}}
@@ -77,11 +78,11 @@ func (a *{{.GoTableName}}) Values() []any {
 	}
 	return []interface{}{ {{ sqltool .  "goinfieldcolbulk"}} }
 }
-func (a *{{.GoTableName}}) GetAutoIncrPk() int64 {
+func (a *{{.GoTableName}}) GetAutoIncrPk()  (int64,string) {
 	if a.IsNil() {
-		return 0
+		return 0,{{.PrimaryKey.GoColumnName}}
 	}
-	return a.{{.PrimaryKey.GoColumnName}}
+	return a.{{.PrimaryKey.GoColumnName}},{{.PrimaryKey.GoColumnName}}
 }
 func (a *{{.GoTableName}}) SetAutoIncrPk(id int64) {
 	if a.IsNil() {
@@ -97,6 +98,17 @@ func (a *{{.GoTableName}}) ColumnsSet() map[string]struct{} {
 	return columnsSet
 }
 
+func (a *User)Dialect()string{
+	 {{$ismysql :=  eq .Dialect "mysql"}}
+	 {{$ispg :=  eq .Dialect "postgres"}}
+	 {{$issqlite :=  eq .Dialect "sqlite3"}}
+	 {{if $ismysql}}{{end}}
+	return  {{if $ismysql}}dialect.MySQL{{end}} {{if $ispg}}dialect.Postgres{{end}} {{if $issqlite}}dialect.SQLite{{end}}
+}
+func(a *User)Table()string{
+	return table
+}
+
 
 {{- range .GenerateWhereCol }}
 		{{$c1:=gt .BigType 0}}
@@ -105,12 +117,19 @@ func (a *{{.GoTableName}}) ColumnsSet() map[string]struct{} {
 		{{end}}
 		
 {{- end}}
-var And = xsql.AndOps
-var Or = xsql.OrOps
-var Not = xsql.NotOps
+
+func And(predicates ...xsql.WhereFunc) xsql.WhereFunc {
+	return xsql.AndOp(predicates...)
+}
+func Or(predicates ...xsql.WhereFunc) xsql.WhereFunc {
+	return xsql.OrOp(predicates...)
+}
+func Not(predicate xsql.WhereFunc) xsql.WhereFunc {
+	return xsql.NotOp(predicate)
+}
 
 func Create(db xsql.ExecQuerier) *Creater {
-	return &Creater{xsql.NewInsertExecutor[*{{.GoTableName}}](db, table)}
+	return &Creater{xsql.NewInsertExecutor[*{{.GoTableName}}](db)}
 }
 
 type Creater struct{
@@ -123,13 +142,13 @@ func (c *Creater) Set{{.GoTableName}}(a ...*{{.GoTableName}}) *Creater {
 }
 
 func Find(db xsql.ExecQuerier) *xsql.SelectExecutor[*{{.GoTableName}}] {
-	return xsql.NewSelectExecutor[*{{.GoTableName}}](db, table)
+	return xsql.NewSelectExecutor[*{{.GoTableName}}](db)
 }
 func Delete(db xsql.ExecQuerier) *xsql.DeleteExecutor[*{{.GoTableName}}] {
-	return xsql.NewDeleteExecutor[*{{.GoTableName}}](db, table)
+	return xsql.NewDeleteExecutor[*{{.GoTableName}}](db)
 }
 func Update(db xsql.ExecQuerier) *Updater {
-	return &Updater{xsql.NewUpdateExecutor[*{{.GoTableName}}](db, table)}
+	return &Updater{xsql.NewUpdateExecutor[*{{.GoTableName}}](db)}
 }
 
 type Updater struct {

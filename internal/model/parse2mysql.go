@@ -20,6 +20,7 @@ type Table struct {
 	ImportTime       bool      // is need import time
 	RelativePath     string
 	Protopkg         string
+	Dialect          string //mysql postgres sqlite3
 }
 
 // Column Column
@@ -106,7 +107,7 @@ func MysqlColumn(ddl *sqlparser.DDL, notint64 bool) ([]*Column, error) {
 	return res, nil
 }
 
-func MysqlTable(db, path, relative string, notint64 bool) *Table {
+func MysqlTable(db, path, relative string, notint64 bool, dialect string) *Table {
 	sql, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
@@ -130,6 +131,7 @@ func MysqlTable(db, path, relative string, notint64 bool) *Table {
 		TableName:   tableName,
 		GoTableName: gotableName,
 		PackageName: strings.ToLower(gotableName),
+		Dialect:     dialect,
 	}
 	columns, err := MysqlColumn(ddl, notint64)
 	if err != nil {

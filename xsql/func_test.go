@@ -6,7 +6,7 @@ import (
 )
 
 func Test_EQ(t *testing.T) {
-	var a = NewFieldOps[int]("age")
+	var a = NewFieldOp[int]("age")
 
 	f := a.EQ(1)
 	x := Select("xx").From(Table("user"))

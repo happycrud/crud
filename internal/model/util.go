@@ -21,11 +21,11 @@ const (
 func GoTypeToWhereFunc(gt, gn string) string {
 	switch gt {
 	case "int", "int64", "int32", "int16", "int8", "uint", "uint64", "uint32", "uint16", "uint8", "float32", "float64", "[]byte":
-		return fmt.Sprintf("var %sOps  = xsql.NewFieldOps[%s](%s)", gn, gt, gn)
+		return fmt.Sprintf("var %sOp  = xsql.NewFieldOp[%s](%s)", gn, gt, gn)
 	case "string":
-		return fmt.Sprintf("var %sOps  = xsql.NewStrFieldOps(%s)", gn, gn)
+		return fmt.Sprintf("var %sOp  = xsql.NewStrFieldOp(%s)", gn, gn)
 	case "time.Time":
-		return fmt.Sprintf("var %sOps = xsql.NewFieldOps[string](%s)", gn, gn)
+		return fmt.Sprintf("var %sOp = xsql.NewFieldOp[string](%s)", gn, gn)
 	}
 	return ""
 }

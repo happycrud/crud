@@ -5,6 +5,6 @@ import (
 	"github.com/happycrud/crud/xsql"
 )
 
-func NewMySQL(c *xsql.Config) (*xsql.DB, error) {
+func NewDB(c *xsql.Config) (*xsql.DB, error) {
 	return xsql.NewDB("mysql", c)
 }

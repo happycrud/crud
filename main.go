@@ -62,7 +62,7 @@ var reactgrommet bool
 var mgo string
 var struct2pb string
 var notint64 bool
-var generic bool
+var dialect string
 
 // var fields string
 const defaultDir = "crud"
@@ -72,9 +72,10 @@ func init() {
 	flag.BoolVar(&service, "service", false, "-service  generate GRPC proto message and service implementation")
 	flag.BoolVar(&http, "http", false, "-http  generate Gin controller")
 	flag.BoolVar(&notint64, "notint64", false, "-notint64  do not generate intger field to int64 gotype")
-	flag.BoolVar(&generic, "generic", false, "-generic  generate generic code")
+
 	flag.BoolVar(&reactgrommet, "reactgrommet", false, "-reactgrommet  generate reactgrommet tsx code work with -service")
 	flag.StringVar(&protopkg, "protopkg", "", "-protopkg  proto package field value")
+	flag.StringVar(&dialect, "dialect", "mysql", "-dialete only support mysql postgres sqlite3, default mysql ")
 	flag.StringVar(&mgo, "mgo", "", "-mgo find struct from file and generate crud method example  ./user.go:User  User struct in ./user.go file ")
 	flag.StringVar(&struct2pb, "struct2pb", "", "-struct2pb find struct from file and generate corresponding proto message  ./user.go:User  User struct in ./user.go file ")
 }
@@ -147,12 +148,7 @@ func main() {
 		generateFiles(v)
 	}
 	if isDir && path == defaultDir {
-		if generic {
-			generateFile(filepath.Join(defaultDir, "aa_client.go"), string(clientGenericTmpl), f, tableObjs)
-		} else {
-			generateFile(filepath.Join(defaultDir, "aa_client.go"), string(clientTmpl), f, tableObjs)
-		}
-
+		generateFile(filepath.Join(defaultDir, "aa_client.go"), string(clientGenericTmpl), f, tableObjs)
 	}
 
 }
@@ -171,7 +167,7 @@ func tableFromSql(path string) (tableObjs []*model.Table, isDir bool) {
 		}
 		for _, v := range fs {
 			if !v.IsDir() && strings.HasSuffix(strings.ToLower(v.Name()), ".sql") {
-				obj := model.MysqlTable(database, filepath.Join(path, v.Name()), relativePath, notint64)
+				obj := model.MysqlTable(database, filepath.Join(path, v.Name()), relativePath, notint64, dialect)
 				if obj != nil {
 					tableObjs = append(tableObjs, obj)
 				}
@@ -180,7 +176,7 @@ func tableFromSql(path string) (tableObjs []*model.Table, isDir bool) {
 
 		}
 	} else {
-		tableObjs = append(tableObjs, model.MysqlTable(database, path, relativePath, notint64))
+		tableObjs = append(tableObjs, model.MysqlTable(database, path, relativePath, notint64, dialect))
 	}
 	return tableObjs, isDir
 }
@@ -198,14 +194,7 @@ func generateFiles(tableObj *model.Table) {
 	//创建目录
 	dir := filepath.Join(defaultDir, tableObj.PackageName)
 	os.Mkdir(dir, os.ModePerm)
-	if generic {
-		generateFile(filepath.Join(dir, tableObj.PackageName+".go"), string(genericTmpl), f, tableObj)
-	} else {
-		generateFile(filepath.Join(dir, "model.go"), string(modelTmpl), f, tableObj)
-		generateFile(filepath.Join(dir, "where.go"), string(whereTmpl), f, tableObj)
-		generateFile(filepath.Join(dir, "builder.go"), string(crudTmpl), f, tableObj)
-	}
-
+	generateFile(filepath.Join(dir, tableObj.PackageName+".go"), string(genericTmpl), f, tableObj)
 	if service {
 		generateService(tableObj)
 	}

@@ -11,7 +11,17 @@ import (
    	"{{$table.RelativePath}}/crud/{{$table.PackageName}}"
 	{{- end}}  
 
+	 {{$ismysql :=  eq (index . 0).Dialect "mysql"}}
+	 {{$ispg :=  eq (index . 0).Dialect "postgres"}}
+	 {{$issqlite :=  eq (index . 0).Dialect "sqlite3"}}
+
+
+	 {{if $ismysql}}"github.com/happycrud/crud/xsql/mysql"{{end}} 
+	 {{if $ispg}}"github.com/happycrud/crud/xsql/postgres"{{end}} 
+	 {{if $issqlite}}"github.com/happycrud/crud/xsql/sqlite3"{{end}}
+
 )
+	
 
 type Client struct {
 	config *xsql.Config
@@ -56,7 +66,7 @@ func (tx *Tx) init() {
 }
 
 func NewClient(config *xsql.Config) (*Client, error) {
-	db, err := xsql.NewMySQL(config)
+	db, err := {{if $ismysql}}mysql{{end}} {{if $ispg}}postgres{{end}} {{if $issqlite}}sqlite3{{end}}.NewDB(config)
 	if err != nil {
 		return nil, err
 	}
