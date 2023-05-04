@@ -16,18 +16,17 @@ import (
 	_ "embed"
 
 	_ "github.com/go-sql-driver/mysql"
-
-	"github.com/happycrud/crud/internal/model"
+	"github.com/happycrud/crud/crud/internal/model"
 )
 
-//go:embed "internal/templates/model.tmpl"
-var modelTmpl []byte
+// //go:embed "internal/templates/model.tmpl"
+// var modelTmpl []byte
 
-//go:embed "internal/templates/builder.tmpl"
-var crudTmpl []byte
+// //go:embed "internal/templates/builder.tmpl"
+// var crudTmpl []byte
 
-//go:embed "internal/templates/where.tmpl"
-var whereTmpl []byte
+// //go:embed "internal/templates/where.tmpl"
+// var whereTmpl []byte
 
 //go:embed "internal/templates/proto.tmpl"
 var protoTmpl []byte
@@ -35,8 +34,8 @@ var protoTmpl []byte
 //go:embed "internal/templates/service.tmpl"
 var serviceTmpl []byte
 
-//go:embed "internal/templates/client.tmpl"
-var clientTmpl []byte
+// //go:embed "internal/templates/client.tmpl"
+// var clientTmpl []byte
 
 //go:embed "internal/templates/client_generic.tmpl"
 var clientGenericTmpl []byte
@@ -72,7 +71,6 @@ func init() {
 	flag.BoolVar(&service, "service", false, "-service  generate GRPC proto message and service implementation")
 	flag.BoolVar(&http, "http", false, "-http  generate Gin controller")
 	flag.BoolVar(&notint64, "notint64", false, "-notint64  do not generate intger field to int64 gotype")
-
 	flag.BoolVar(&reactgrommet, "reactgrommet", false, "-reactgrommet  generate reactgrommet tsx code work with -service")
 	flag.StringVar(&protopkg, "protopkg", "", "-protopkg  proto package field value")
 	flag.StringVar(&dialect, "dialect", "mysql", "-dialete only support mysql postgres sqlite3, default mysql ")

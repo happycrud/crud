@@ -42,7 +42,7 @@ Crud is a very easy to learn and easy to use ORM framework. Using crud can enabl
 
 ```bash
 
-go install  github.com/happycrud/crud@latest
+go install  github.com/happycrud/crud/crud@latest
 
 ```
 ### Using the command line
