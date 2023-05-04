@@ -1,9 +1,9 @@
 package model
 
-func PostgersTable(db, path, relative string, notint64 bool, dialect string) *Table {
+func PostgresTable(db, path, relative string, notint64 bool, dialect string) *Table {
 	return nil
 }
 
-func PostgersColumn(ddl string, notint64 bool) ([]*Column, error) {
+func PostgresColumn(ddl string, notint64 bool) ([]*Column, error) {
 	return nil, nil
 }
