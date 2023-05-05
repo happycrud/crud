@@ -15,27 +15,14 @@ import (
 
 	_ "embed"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/happycrud/crud/crud/internal/model"
 )
-
-// //go:embed "internal/templates/model.tmpl"
-// var modelTmpl []byte
-
-// //go:embed "internal/templates/builder.tmpl"
-// var crudTmpl []byte
-
-// //go:embed "internal/templates/where.tmpl"
-// var whereTmpl []byte
 
 //go:embed "internal/templates/proto.tmpl"
 var protoTmpl []byte
 
 //go:embed "internal/templates/service.tmpl"
 var serviceTmpl []byte
-
-// //go:embed "internal/templates/client.tmpl"
-// var clientTmpl []byte
 
 //go:embed "internal/templates/client_generic.tmpl"
 var clientGenericTmpl []byte

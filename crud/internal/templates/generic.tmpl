@@ -98,25 +98,25 @@ func (a *{{.GoTableName}}) ColumnsSet() map[string]struct{} {
 	return columnsSet
 }
 
-func (a *User)Dialect()string{
+func (a *{{.GoTableName}})Dialect()string{
 	 {{$ismysql :=  eq .Dialect "mysql"}}
 	 {{$ispg :=  eq .Dialect "postgres"}}
 	 {{$issqlite :=  eq .Dialect "sqlite3"}}
 	 {{if $ismysql}}{{end}}
 	return  {{if $ismysql}}dialect.MySQL{{end}} {{if $ispg}}dialect.Postgres{{end}} {{if $issqlite}}dialect.SQLite{{end}}
 }
-func(a *User)Table()string{
+func(a *{{.GoTableName}})Table()string{
 	return table
 }
 
-
+const (
 {{- range .GenerateWhereCol }}
 		{{$c1:=gt .BigType 0}}
 		{{if $c1}}
 			{{GoTypeToWhereFunc .GoColumnType .GoColumnName}}	
 		{{end}}
-		
 {{- end}}
+)
 
 func And(predicates ...xsql.WhereFunc) xsql.WhereFunc {
 	return xsql.AndOp(predicates...)

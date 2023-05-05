@@ -7,42 +7,36 @@ type WhereFunc func(*Selector)
 type OpType interface {
 	constraints.Float | constraints.Integer | []byte | string
 }
-type FieldOp[T OpType] struct {
-	name string
-}
-
-func NewFieldOp[T OpType](name string) FieldOp[T] {
-	return FieldOp[T]{name: name}
-}
+type FieldOp[T OpType] string
 
 func (f FieldOp[T]) EQ(arg T) WhereFunc {
 	return func(s *Selector) {
-		s.Where(EQ(f.name, arg))
+		s.Where(EQ(string(f), arg))
 	}
 }
 func (f FieldOp[T]) NEQ(arg T) WhereFunc {
 	return func(s *Selector) {
-		s.Where(NEQ(f.name, arg))
+		s.Where(NEQ(string(f), arg))
 	}
 }
 func (f FieldOp[T]) LT(arg T) WhereFunc {
 	return func(s *Selector) {
-		s.Where(LT(f.name, arg))
+		s.Where(LT(string(f), arg))
 	}
 }
 func (f FieldOp[T]) LTE(arg T) WhereFunc {
 	return func(s *Selector) {
-		s.Where(LTE(f.name, arg))
+		s.Where(LTE(string(f), arg))
 	}
 }
 func (f FieldOp[T]) GT(arg T) WhereFunc {
 	return func(s *Selector) {
-		s.Where(GT(f.name, arg))
+		s.Where(GT(string(f), arg))
 	}
 }
 func (f FieldOp[T]) GTE(arg T) WhereFunc {
 	return func(s *Selector) {
-		s.Where(GTE(f.name, arg))
+		s.Where(GTE(string(f), arg))
 	}
 }
 func (f FieldOp[T]) In(args ...T) WhereFunc {
@@ -55,7 +49,7 @@ func (f FieldOp[T]) In(args ...T) WhereFunc {
 		for i := range v {
 			v[i] = args[i]
 		}
-		s.Where(In(f.name, v...))
+		s.Where(In(string(f), v...))
 	}
 }
 func (f FieldOp[T]) NotIn(args ...T) WhereFunc {
@@ -68,31 +62,96 @@ func (f FieldOp[T]) NotIn(args ...T) WhereFunc {
 		for i := range v {
 			v[i] = args[i]
 		}
-		s.Where(NotIn(f.name, v...))
+		s.Where(NotIn(string(f), v...))
 	}
 }
 
-type StrFieldOp struct {
-	FieldOp[string]
+type StrFieldOp string
+
+func (f StrFieldOp) EQ(arg string) WhereFunc {
+	return func(s *Selector) {
+		s.Where(EQ(string(f), arg))
+	}
+}
+func (f StrFieldOp) NEQ(arg string) WhereFunc {
+	return func(s *Selector) {
+		s.Where(NEQ(string(f), arg))
+	}
+}
+func (f StrFieldOp) LT(arg string) WhereFunc {
+	return func(s *Selector) {
+		s.Where(LT(string(f), arg))
+	}
+}
+func (f StrFieldOp) LTE(arg string) WhereFunc {
+	return func(s *Selector) {
+		s.Where(LTE(string(f), arg))
+	}
+}
+func (f StrFieldOp) GT(arg string) WhereFunc {
+	return func(s *Selector) {
+		s.Where(GT(string(f), arg))
+	}
+}
+func (f StrFieldOp) GTE(arg string) WhereFunc {
+	return func(s *Selector) {
+		s.Where(GTE(string(f), arg))
+	}
+}
+func (f StrFieldOp) In(args ...string) WhereFunc {
+	return func(s *Selector) {
+		if len(args) == 0 {
+			s.Where(False())
+			return
+		}
+		v := make([]interface{}, len(args))
+		for i := range v {
+			v[i] = args[i]
+		}
+		s.Where(In(string(f), v...))
+	}
+}
+func (f StrFieldOp) NotIn(args ...string) WhereFunc {
+	return func(s *Selector) {
+		if len(args) == 0 {
+			s.Where(Not(False()))
+			return
+		}
+		v := make([]interface{}, len(args))
+		for i := range v {
+			v[i] = args[i]
+		}
+		s.Where(NotIn(string(f), v...))
+	}
 }
 
-func NewStrFieldOp(name string) StrFieldOp {
-	return StrFieldOp{FieldOp[string]{name: name}}
+func (f StrFieldOp) IsNull() WhereFunc {
+	return func(s *Selector) {
+		s.Where(IsNull(string(f)))
+	}
+}
+
+func (f StrFieldOp) NotNull() WhereFunc {
+	return func(s *Selector) {
+		s.Where(NotNull(string(f)))
+	}
 }
 
 func (f StrFieldOp) HasPrefix(arg string) WhereFunc {
 	return func(s *Selector) {
-		s.Where(HasPrefix(f.name, arg))
+		s.Where(HasPrefix(string(f), arg))
 	}
 }
+
 func (f StrFieldOp) HasSuffix(arg string) WhereFunc {
 	return func(s *Selector) {
-		s.Where(HasSuffix(f.name, arg))
+		s.Where(HasSuffix(string(f), arg))
 	}
 }
+
 func (f StrFieldOp) Contains(arg string) WhereFunc {
 	return func(s *Selector) {
-		s.Where(Contains(f.name, arg))
+		s.Where(Contains(string(f), arg))
 	}
 }
 
