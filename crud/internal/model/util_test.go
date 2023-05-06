@@ -33,14 +33,12 @@ CREATE TABLE "user" (
 
 const user_table_pg = `
 CREATE TABLE "public"."user" (
-	"id" int8 NOT NULL DEFAULT nextval('user_id_seq'::regclass),
-	"name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-	"age" int4 NOT NULL,
-	"ctime" timestamp(6) NOT NULL DEFAULT now(),
-	"mtime" timestamp(6) NOT NULL DEFAULT now(),
-	CONSTRAINT "user_pkey" PRIMARY KEY ("id")
-  )
-  ;
+    "id" serial NOT NULL PRIMARY KEY,
+    "name" varchar(255) NOT NULL,
+    "age" int4 NOT NULL,
+    "ctime" timestamp(6) NOT NULL DEFAULT now(),
+    "mtime" timestamp(6) NOT NULL DEFAULT now()
+)
 `
 
 const user_table_mysql = `
@@ -63,8 +61,11 @@ func TestSqliteParse(t *testing.T) {
 		panic(err)
 	}
 	ct := st.(*sql.CreateTableStatement)
-	fmt.Println(ct.String(), ct.Columns)
+	fmt.Println(ct.Name.Name, ct.String(), ct.Columns)
 	fmt.Println(ct.Constraints)
+	for _, v := range ct.Columns {
+		fmt.Println(v.Constraints)
+	}
 }
 
 func TestPgParse(t *testing.T) {
@@ -72,7 +73,7 @@ func TestPgParse(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(x.String())
+	fmt.Println(x.GetStmts()[0].GetStmt())
 
 }
 

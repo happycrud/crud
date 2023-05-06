@@ -102,3 +102,7 @@ func (db *DB) QueryContext(ctx context.Context, query string, args ...interface{
 func (db *DB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error) {
 	return db.master.BeginTx(ctx, opts)
 }
+
+func (db *DB) Begin() (*sql.Tx, error) {
+	return db.master.BeginTx(context.Background(), nil)
+}

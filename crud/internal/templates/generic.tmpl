@@ -79,16 +79,30 @@ func (a *{{.GoTableName}}) Values() []any {
 	return []interface{}{ {{ sqltool .  "goinfieldcolbulk"}} }
 }
 func (a *{{.GoTableName}}) GetAutoIncrPk()  (int64,string) {
+	{{if .PrimaryKey}}
+	{{if .PrimaryKey.IsAutoIncrment}}
 	if a.IsNil() {
 		return 0,{{.PrimaryKey.GoColumnName}}
 	}
 	return a.{{.PrimaryKey.GoColumnName}},{{.PrimaryKey.GoColumnName}}
+	{{else}}
+	return 0,""
+	{{end}}
+	{{else}}
+	return 0,""
+	{{end}}
 }
 func (a *{{.GoTableName}}) SetAutoIncrPk(id int64) {
+
+
+	{{if .PrimaryKey}}
+	{{if .PrimaryKey.IsAutoIncrment}}
 	if a.IsNil() {
 		return
 	}
 	a.{{.PrimaryKey.GoColumnName}} = {{.PrimaryKey.GoColumnType}}(id)
+	{{end}}
+	{{end}}
 }
 
 func (a *{{.GoTableName}}) Columns() []string {
@@ -96,6 +110,9 @@ func (a *{{.GoTableName}}) Columns() []string {
 }
 func (a *{{.GoTableName}}) ColumnsSet() map[string]struct{} {
 	return columnsSet
+}
+func (a *{{.GoTableName}})Schema()string{
+	return "{{.SchemaName}}"
 }
 
 func (a *{{.GoTableName}})Dialect()string{

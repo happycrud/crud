@@ -3,12 +3,13 @@ package model
 // Table Table
 type Table struct {
 	Database         string
+	SchemaName       string    // for pg
 	TableName        string    // table name
 	GoTableName      string    // go struct name
 	PackageName      string    // package name
 	Fields           []*Column // columns
 	GenerateWhereCol []*Column // GenerateWhereCol 生成where字段比较方法的列
-	PrimaryKey       *Column   // priomary_key column
+	PrimaryKey       *Column   // primary_key column
 	ImportTime       bool      // is need import time
 	RelativePath     string
 	Protopkg         string

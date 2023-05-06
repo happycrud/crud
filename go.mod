@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/jackc/pgx/v5 v5.3.1
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible
+	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/pingcap/parser v0.0.0-20220622031236-3bca03d3057b
 	github.com/rqlite/sql v0.0.0-20221103124402-8f9ff0ceb8f0
 	go.mongodb.org/mongo-driver v1.11.2

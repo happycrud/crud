@@ -152,16 +152,48 @@ func tableFromSql(path string) (tableObjs []*model.Table, isDir bool) {
 		}
 		for _, v := range fs {
 			if !v.IsDir() && strings.HasSuffix(strings.ToLower(v.Name()), ".sql") {
-				obj := model.MysqlTable(database, filepath.Join(path, v.Name()), relativePath, notint64, dialect)
-				if obj != nil {
-					tableObjs = append(tableObjs, obj)
+				switch dialect {
+				case "mysql":
+					obj := model.MysqlTable(database, filepath.Join(path, v.Name()), relativePath, notint64, dialect)
+					if obj != nil {
+						tableObjs = append(tableObjs, obj)
+					}
+				case "postgres":
+					obj := model.PostgresTable(database, filepath.Join(path, v.Name()), relativePath, notint64, dialect)
+					if obj != nil {
+						tableObjs = append(tableObjs, obj)
+					}
+				case "sqlite3":
+					obj := model.Sqlite3Table(database, filepath.Join(path, v.Name()), relativePath, notint64, dialect)
+					if obj != nil {
+						tableObjs = append(tableObjs, obj)
+					}
+
 				}
 
 			}
 
 		}
 	} else {
-		tableObjs = append(tableObjs, model.MysqlTable(database, path, relativePath, notint64, dialect))
+		switch dialect {
+		case "mysql":
+			obj := model.MysqlTable(database, path, relativePath, notint64, dialect)
+			if obj != nil {
+				tableObjs = append(tableObjs, obj)
+			}
+		case "postgres":
+			obj := model.PostgresTable(database, path, relativePath, notint64, dialect)
+			if obj != nil {
+				tableObjs = append(tableObjs, obj)
+			}
+		case "sqlite3":
+			obj := model.Sqlite3Table(database, path, relativePath, notint64, dialect)
+			if obj != nil {
+				tableObjs = append(tableObjs, obj)
+			}
+
+		}
+
 	}
 	return tableObjs, isDir
 }

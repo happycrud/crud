@@ -21,6 +21,7 @@ type Entity interface {
 	IsNil() bool
 	Dialect() string
 	Table() string
+	Schema() string
 }
 
 type InsertExecutor[T Entity] struct {
@@ -36,7 +37,7 @@ func NewInsertExecutor[T Entity](eq ExecQuerier) *InsertExecutor[T] {
 	builder := &InsertExecutor[T]{
 		eq: eq,
 	}
-	builder.builder = Dialect(builder.a.Dialect()).Insert(builder.a.Table())
+	builder.builder = Dialect(builder.a.Dialect()).Insert(builder.a.Table()).Schema(builder.a.Schema())
 	return builder
 }
 
@@ -95,7 +96,7 @@ func (in *InsertExecutor[T]) Save(ctx context.Context) (int64, error) {
 		}
 		if lastInsertId > 0 && rowsAffected > 0 {
 			for _, v := range in.items {
-				if id, _ := v.GetAutoIncrPk(); id > 0 {
+				if id, autoIncrPkName := v.GetAutoIncrPk(); id > 0 || autoIncrPkName == "" {
 					continue
 				}
 				v.SetAutoIncrPk(lastInsertId)
@@ -106,20 +107,20 @@ func (in *InsertExecutor[T]) Save(ctx context.Context) (int64, error) {
 		return result.RowsAffected()
 	case dialect.Postgres, dialect.SQLite:
 		insertColumnName := in.a.Columns()
-
-		_, pkname := in.a.GetAutoIncrPk()
+		_, autoIncrPkName := in.a.GetAutoIncrPk()
 		pkIndex := -1
-		if pkname != "" {
-			in.builder.Returning(pkname)
+		if autoIncrPkName != "" {
+			in.builder.Returning(autoIncrPkName)
 			// 移除自增自增主键名称
 			for k, v := range insertColumnName {
-				if v == pkname {
+				if v == autoIncrPkName {
 					insertColumnName = append(insertColumnName[:k], insertColumnName[k+1:]...)
 					pkIndex = k
 					break
 				}
 			}
 		}
+
 		in.builder.Columns(insertColumnName...)
 		if in.upsert {
 			in.builder.OnConflict(ResolveWithNewValues())
@@ -129,10 +130,10 @@ func (in *InsertExecutor[T]) Save(ctx context.Context) (int64, error) {
 				return 0, errors.New("can not insert a nil item")
 			}
 			insertValues := a.Values()
-			if pkname != "" {
+			if autoIncrPkName != "" {
 				// 移除自增 ==0 的自增主键名称
-				if pkIndex > 0 {
-					insertValues = append(insertValues[0:pkIndex], insertValues[pkIndex+1:]...)
+				if pkIndex >= 0 {
+					insertValues = append(insertValues[:pkIndex], insertValues[pkIndex+1:]...)
 				}
 			}
 			in.builder.Values(insertValues...)
@@ -144,15 +145,19 @@ func (in *InsertExecutor[T]) Save(ctx context.Context) (int64, error) {
 			return 0, err
 		}
 		defer q.Close()
+
 		index := 0
 		for q.Next() {
 			var tempid int64
 			if e := q.Scan(&tempid); e != nil {
 				return 0, e
 			}
-			in.items[index].SetAutoIncrPk(tempid)
+			if id, autoPkName := in.items[index].GetAutoIncrPk(); id == 0 && autoPkName != "" {
+				in.items[index].SetAutoIncrPk(tempid)
+			}
 			index++
 		}
+
 		if q.Err() != nil {
 			return 0, q.Err()
 		}
@@ -173,7 +178,7 @@ func NewDeleteExecutor[T Entity](eq ExecQuerier) *DeleteExecutor[T] {
 	builder := &DeleteExecutor[T]{
 		eq: eq,
 	}
-	builder.builder = Dialect(builder.a.Dialect()).Delete(builder.a.Table())
+	builder.builder = Dialect(builder.a.Dialect()).Delete(builder.a.Table()).Schema(builder.a.Schema())
 	return builder
 }
 
@@ -213,7 +218,7 @@ func NewSelectExecutor[T Entity](eq ExecQuerier) *SelectExecutor[T] {
 	sel := &SelectExecutor[T]{
 		eq: eq,
 	}
-	sel.builder = Dialect(sel.a.Dialect()).Select().From(Table(sel.a.Table()))
+	sel.builder = Dialect(sel.a.Dialect()).Select().From(Table(sel.a.Table()).Schema(sel.a.Schema()))
 	return sel
 }
 
@@ -388,7 +393,7 @@ func NewUpdateExecutor[T Entity](eq ExecQuerier) *UpdateExecutor[T] {
 	builder := &UpdateExecutor[T]{
 		eq: eq,
 	}
-	builder.builder = Dialect(builder.a.Dialect()).Update(builder.a.Table())
+	builder.builder = Dialect(builder.a.Dialect()).Update(builder.a.Table()).Schema(builder.a.Schema())
 	return builder
 }
 
