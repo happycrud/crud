@@ -106,62 +106,79 @@ func (in *InsertExecutor[T]) Save(ctx context.Context) (int64, error) {
 
 		return result.RowsAffected()
 	case dialect.Postgres, dialect.SQLite:
-		insertColumnName := in.a.Columns()
 		_, autoIncrPkName := in.a.GetAutoIncrPk()
-		pkIndex := -1
-		if autoIncrPkName != "" {
-			in.builder.Returning(autoIncrPkName)
-			// 移除自增自增主键名称
-			for k, v := range insertColumnName {
-				if v == autoIncrPkName {
-					insertColumnName = append(insertColumnName[:k], insertColumnName[k+1:]...)
-					pkIndex = k
-					break
-				}
-			}
-		}
-
-		in.builder.Columns(insertColumnName...)
 		if in.upsert {
-			in.builder.OnConflict(ResolveWithNewValues())
-		}
-		for _, a := range in.items {
-			if a.IsNil() {
-				return 0, errors.New("can not insert a nil item")
+			in.builder.Columns(in.a.Columns()...)
+			in.builder.OnConflict(
+				ConflictColumns(autoIncrPkName),
+				ResolveWithNewValues())
+			for _, a := range in.items {
+				if a.IsNil() {
+					return 0, errors.New("can not insert a nil item")
+				}
+				in.builder.Values(a.Values()...)
 			}
-			insertValues := a.Values()
+			ins, args := in.builder.Query()
+			result, err := in.eq.ExecContext(ctx, ins, args...)
+			if err != nil {
+				return 0, err
+			}
+			return result.RowsAffected()
+
+		} else {
+			insertColumnName := in.a.Columns()
+
+			pkIndex := -1
 			if autoIncrPkName != "" {
-				// 移除自增 ==0 的自增主键名称
-				if pkIndex >= 0 {
-					insertValues = append(insertValues[:pkIndex], insertValues[pkIndex+1:]...)
+				in.builder.Returning(autoIncrPkName)
+				// 移除自增自增主键名称
+				for k, v := range insertColumnName {
+					if v == autoIncrPkName {
+						insertColumnName = append(insertColumnName[:k], insertColumnName[k+1:]...)
+						pkIndex = k
+						break
+					}
 				}
 			}
-			in.builder.Values(insertValues...)
-		}
-
-		ins, args := in.builder.Query()
-		q, err := in.eq.QueryContext(ctx, ins, args...)
-		if err != nil {
-			return 0, err
-		}
-		defer q.Close()
-
-		index := 0
-		for q.Next() {
-			var tempid int64
-			if e := q.Scan(&tempid); e != nil {
-				return 0, e
+			in.builder.Columns(insertColumnName...)
+			for _, a := range in.items {
+				if a.IsNil() {
+					return 0, errors.New("can not insert a nil item")
+				}
+				insertValues := a.Values()
+				if autoIncrPkName != "" {
+					// 移除自增 ==0 的自增主键名称
+					if pkIndex >= 0 {
+						insertValues = append(insertValues[:pkIndex], insertValues[pkIndex+1:]...)
+					}
+				}
+				in.builder.Values(insertValues...)
 			}
-			if id, autoPkName := in.items[index].GetAutoIncrPk(); id == 0 && autoPkName != "" {
-				in.items[index].SetAutoIncrPk(tempid)
+			ins, args := in.builder.Query()
+			q, err := in.eq.QueryContext(ctx, ins, args...)
+			if err != nil {
+				return 0, err
 			}
-			index++
+			defer q.Close()
+
+			index := 0
+			for q.Next() {
+				var tempid int64
+				if e := q.Scan(&tempid); e != nil {
+					return 0, e
+				}
+				if id, autoPkName := in.items[index].GetAutoIncrPk(); id == 0 && autoPkName != "" {
+					in.items[index].SetAutoIncrPk(tempid)
+				}
+				index++
+			}
+
+			if q.Err() != nil {
+				return 0, q.Err()
+			}
+			return int64(len(in.items)), nil
 		}
 
-		if q.Err() != nil {
-			return 0, q.Err()
-		}
-		return int64(len(in.items)), nil
 	default:
 		return 0, errors.New("not support dialect")
 	}
