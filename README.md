@@ -1,12 +1,12 @@
 
-# crud is a mysql and mongodb crud code generate tool
+# crud is a crud code generate tool support mysql,mariadb,postgresql,sqlite3,monogdb
 
 ## [中文文档](README_zh.md)
 
 
 ## Overview
 
-Crud is a very easy to learn and easy to use ORM framework. Using crud can enable you to complete business requirements quickly, gracefully and with high performance. Currently, MariaDB、MySQL and Mongodb are supported.
+Crud is a very easy to learn and easy to use ORM framework. Using crud can enable you to complete business requirements quickly, gracefully and with high performance. Currently, mysql,mariadb,postgresql,sqlite3,monogdb are supported.
 
 
 - From SQL DDL table structure design to corresponding model and service generation, it conforms to the process of creating tables before writing code
@@ -35,7 +35,7 @@ Crud is a very easy to learn and easy to use ORM framework. Using crud can enabl
 
 
 ## [example](https://github.com/happycrud/crud-exmaple)
-
+## [mysql,postgresql,sqlite3 examples](./example)
 ## Getting Started 
 
 ### install
@@ -51,21 +51,25 @@ go install  github.com/happycrud/crud/crud@latest
 crud -h 
 
 Usage of crud:
+  -dialect string
+    	-dialete only support mysql postgres sqlite3, default mysql  (default "mysql")
   -http
-        -http  generate Gin controller
+    	-http  generate Gin controller
   -mgo string
-        -mgo find struct from file and generate crud method example  ./user.go:User  User struct in ./user.go file 
+    	-mgo find struct from file and generate crud method example  ./user.go:User  User struct in ./user.go file
+  -notint64
+    	-notint64  do not generate intger field to int64 gotype
   -protopkg string
-        -protopkg  proto package field value
+    	-protopkg  proto package field value
   -reactgrommet
-        -reactgrommet  generate reactgrommet tsx code work with -service
+    	-reactgrommet  generate reactgrommet tsx code work with -service
   -service
-        -service  generate GRPC proto message and service implementation
+    	-service  generate GRPC proto message and service implementation
   -struct2pb string
-        -struct2pb find struct from file and generate corresponding proto message  ./user.go:User  User struct in ./user.go file 
+    	-struct2pb find struct from file and generate corresponding proto message  ./user.go:User  User struct in ./user.go file
 ```
 
-```example
+```mysql example
 #  generation crud directory
 crud init
 
@@ -129,12 +133,11 @@ CREATE TABLE `user` (
 crud 
 
 # The following user directories and files will be generated
-example/
+mysql/
 ├── crud
+│   ├── aa_client.go
 │   ├── user
-│   │   ├── builder.go
-│   │   ├── model.go
-│   │   └── where.go
+│   │   └── user.go
 │   └── user.sql
 
 ```
@@ -220,7 +223,7 @@ fmt.Println(effect, err, a)
 ```go
 u, err = user.
 	Find(db).
-	Where(user.IdOps.EQ(1)).
+	Where(user.IdOp.EQ(1)).
 	One(ctx)
 
 fmt.Println(u, err)
@@ -233,7 +236,7 @@ fmt.Println(u, err)
 list, err := user.
 	Find(db).
 	Where(
-		user.AgeOps.In(18, 20, 30),
+		user.AgeOp.In(18, 20, 30),
 		).
 	All(ctx)
 
@@ -245,8 +248,8 @@ fmt.Printf("%+v %+v \n", string(liststr), err)
 ```go
 list, err := user.Find(db)).
 	Where(user.Or(
-		user.IdOps.GT(97),
-		user.AgeOps.In(10, 20, 30),
+		user.IdOp.GT(97),
+		user.AgeOp.In(10, 20, 30),
 		)).
 	OrderAsc(user.Age).
 	Offset(2).
@@ -260,14 +263,14 @@ fmt.Printf("%+v %+v \n", list, err)
 list, err := user.
 	Find(db).
 	Where(
-		user.NameOps.Contains("java"),
+		user.NameOp.Contains("java"),
 		).
 	All(ctx)
 
 list, err = user.
 	Find(db).
 	Where(
-		user.NameOps.HasPrefix("java"),
+		user.NameOp.HasPrefix("java"),
 		).
 	All(ctx)
 ```
@@ -279,7 +282,7 @@ list, err = user.
 count, err := user.
 	Find(db).
 	Count().
-	Where(user.IdOps.GT(0)).
+	Where(user.IdOp.GT(0)).
 	Int64(ctx)
 
 fmt.Println(count, err)
@@ -289,7 +292,7 @@ names, err := user.
 	Select(user.Name).
 	Limit(2).
 	Where(
-		user.IdOps.In(1, 2, 3, 4),
+		user.IdOp.In(1, 2, 3, 4),
 		).
 	Strings(ctx)
 fmt.Println(names, err)
@@ -302,14 +305,14 @@ fmt.Println(names, err)
 us, _ := user.Find(db).
 	Select().
 	Where(
-		user.AgeOps.GT(10),
+		user.AgeOp.GT(10),
 	).
 	All(ctx)
 
 us2, _ := user.Find(db).
 	Select(user.Columns()...).
 	Where(
-		user.AgeOps.GT(10),
+		user.AgeOp.GT(10),
 	).
 	All(ctx)
 
@@ -341,7 +344,7 @@ effect, err := user.
 	Update(tx).
 	SetAge(100).
 	Where(
-		user.IdOps.EQ(u1.ID)
+		user.IdOp.EQ(u1.ID)
 		).
 	Save(ctx)
 
@@ -390,7 +393,7 @@ fmt.Println(string(b))
 effect, err := user.
 	Update(db).
 	SetAge(10).
-	Where(user.NameEQ("java")).
+	Where(user.NameOp.EQ("java")).
 	Save(ctx)
 
 fmt.Println(effect, err)
@@ -401,7 +404,7 @@ effect, err = user.
 	SetAge(100).
 	SetName("java").
 	SetName("python").
-	Where(user.IDEQ(97)).
+	Where(user.IDOp.EQ(97)).
 	Save(ctx)
 
 fmt.Println(effect, err)
@@ -411,7 +414,7 @@ effect, err = user.
 	Update(db).
 	AddAge(-100).
 	SetName("java").
-	Where(user.IDEQ(97)).
+	Where(user.IDOp.EQ(97)).
 	Save(ctx)
 fmt.Println(effect, err)
 
@@ -423,8 +426,8 @@ effect, err = user.
 	Delete(db).
 	Where(
 		user.And(
-			user.IdOps.EQ(3), 
-			user.IdOps.In(1, 3),
+			user.IdOp.EQ(3), 
+			user.IdOp.In(1, 3),
 		)).
 	Exec(ctx)
 
@@ -474,9 +477,7 @@ example/
 ├── crud
 │   ├── aa_client.go
 │   ├── user
-│   │   ├── builder.go
-│   │   ├── model.go
-│   │   └── where.go
+│   │   ├── user.go
 │   └── user.sql
 ├── proto
 │   └── user.api.proto
@@ -626,7 +627,7 @@ func (s *UserServiceImpl) CreateUser(ctx context.Context, req *api.User) (*api.U
 	a2, err := s.Client.Master.User.
 		Find().
 		Where(
-			user.IdOps.EQ(a.Id),
+			user.IdOp.EQ(a.Id),
 		).
 		One(ctx)
 	if err != nil {
@@ -640,7 +641,7 @@ func (s *UserServiceImpl) DeleteUser(ctx context.Context, req *api.UserId) (*emp
 	_, err := s.Client.User.
 		Delete().
 		Where(
-			user.IdOps.EQ(req.GetId()),
+			user.IdOp.EQ(req.GetId()),
 		).
 		Exec(ctx)
 	if err != nil {
@@ -682,7 +683,7 @@ func (s *UserServiceImpl) UpdateUser(ctx context.Context, req *api.UpdateUserReq
 	}
 	_, err := update.
 		Where(
-			user.IdOps.EQ(req.GetUser().GetId()),
+			user.IdOp.EQ(req.GetUser().GetId()),
 		).
 		Save(ctx)
 	if err != nil {
@@ -692,7 +693,7 @@ func (s *UserServiceImpl) UpdateUser(ctx context.Context, req *api.UpdateUserReq
 	a, err := s.Client.Master.User.
 		Find().
 		Where(
-			user.IdOps.EQ(req.GetUser().GetId()),
+			user.IdOp.EQ(req.GetUser().GetId()),
 		).
 		One(ctx)
 	if err != nil {
@@ -706,7 +707,7 @@ func (s *UserServiceImpl) GetUser(ctx context.Context, req *api.UserId) (*api.Us
 	a, err := s.Client.User.
 		Find().
 		Where(
-			user.IdOps.EQ(req.GetId()),
+			user.IdOp.EQ(req.GetId()),
 		).
 		One(ctx)
 	if err != nil {
