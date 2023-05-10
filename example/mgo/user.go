@@ -1,13 +1,11 @@
 package mgo
 
 import (
-	"context"
-
 	"time"
 
+	"github.com/happycrud/crud/mgo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type User struct {
@@ -16,6 +14,24 @@ type User struct {
 	Age   int
 	Sex   bool
 	Mtime time.Time
+}
+
+func (u *User) GetObjectID() (primitive.ObjectID, string) {
+	if u.IsNil() {
+		return primitive.NilObjectID, ID
+	}
+	return u.ID, ID
+}
+
+func (u *User) SetObjectID(id primitive.ObjectID) {
+	if u.IsNil() {
+		return
+	}
+	u.ID = id
+}
+
+func (u *User) IsNil() bool {
+	return u == nil
 }
 
 const (
@@ -31,154 +47,42 @@ func Collection(db *mongo.Database) *mongo.Collection {
 	return db.Collection(tableName)
 }
 
-type FinderBuilder struct {
-	col     *mongo.Collection
-	filters primitive.D
-	opts    *options.FindOptions
+func Create(col *mongo.Collection) *mgo.InsertExecutor[*User] {
+	return mgo.NewInsertExecutor[*User](col)
 }
 
-func Find(col *mongo.Collection) *FinderBuilder {
-	return &FinderBuilder{col: col, opts: options.Find()}
+func Delete(col *mongo.Collection) *mgo.DeleteExecutor[*User] {
+	return mgo.NewDeleteExecutor[*User](col)
 }
 
-func (f *FinderBuilder) Filter(filter ...primitive.E) *FinderBuilder {
-	f.filters = append(f.filters, filter...)
-	return f
-}
-func (f *FinderBuilder) Limit(l int64) *FinderBuilder {
-	f.opts.SetLimit(l)
-	return f
+func Find(col *mongo.Collection) *mgo.FinderExecutor[*User] {
+	return mgo.NewFinderExecutor[*User](col)
 }
 
-func (f *FinderBuilder) Sort(field string, desc bool) *FinderBuilder {
-	i := 1
-	if desc {
-		i = -1
-	}
-	f.opts.SetSort(primitive.D{{Key: field, Value: i}})
-	return f
+type Updater struct {
+	*mgo.UpdateExecutor[*User]
 }
 
-func (f *FinderBuilder) Skip(s int64) *FinderBuilder {
-	f.opts.SetSkip(s)
-	return f
+func Update(col *mongo.Collection) *Updater {
+	return &Updater{mgo.NewUpdateExecutor[*User](col)}
 }
-func (f *FinderBuilder) One(ctx context.Context) (*User, error) {
-	f.opts = f.opts.SetLimit(1)
-	ret, err := f.All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if len(ret) == 1 {
-		return ret[0], nil
-	}
-	return nil, mongo.ErrNoDocuments
-}
-
-func (f *FinderBuilder) All(ctx context.Context) ([]*User, error) {
-	cursor, err := f.col.Find(ctx, f.filters, f.opts)
-	if err != nil {
-		return nil, err
-	}
-	var results []*User
-	if err := cursor.All(ctx, &results); err != nil {
-		return nil, err
-	}
-	return results, nil
-}
-
-type InsertBuilder struct {
-	col *mongo.Collection
-	a   []interface{}
-}
-
-func Create(col *mongo.Collection) *InsertBuilder {
-	return &InsertBuilder{col: col}
-}
-func (i *InsertBuilder) SetUsers(u ...*User) *InsertBuilder {
-	for _, v := range u {
-		i.a = append(i.a, v)
-	}
-	return i
-}
-
-func (i *InsertBuilder) Save(ctx context.Context) error {
-	ret, err := i.col.InsertMany(ctx, i.a)
-	if err != nil {
-		return err
-	}
-	for idx, v := range ret.InsertedIDs {
-		item := i.a[idx].(*User)
-		id := v.(primitive.ObjectID)
-		item.ID = id
-	}
-	return nil
-}
-
-type UpdateBuilder struct {
-	col *mongo.Collection
-	a   primitive.D
-}
-
-func Update(col *mongo.Collection) *UpdateBuilder {
-	return &UpdateBuilder{col: col}
-}
-func (u *UpdateBuilder) SetID(a primitive.ObjectID) *UpdateBuilder {
-	u.a = append(u.a, primitive.E{
-		Key:   ID,
-		Value: a,
-	})
+func (u *Updater) SetID(a primitive.ObjectID) *Updater {
+	u.UpdateExecutor.Set(ID, a)
 	return u
 }
-func (u *UpdateBuilder) SetName(a string) *UpdateBuilder {
-	u.a = append(u.a, primitive.E{
-		Key:   Name,
-		Value: a,
-	})
+func (u *Updater) SetName(a string) *Updater {
+	u.UpdateExecutor.Set(Name, a)
 	return u
 }
-func (u *UpdateBuilder) SetAge(a int) *UpdateBuilder {
-	u.a = append(u.a, primitive.E{
-		Key:   Age,
-		Value: a,
-	})
+func (u *Updater) SetAge(a int) *Updater {
+	u.UpdateExecutor.Set(Age, a)
 	return u
 }
-func (u *UpdateBuilder) SetSex(a bool) *UpdateBuilder {
-	u.a = append(u.a, primitive.E{
-		Key:   Sex,
-		Value: a,
-	})
+func (u *Updater) SetSex(a bool) *Updater {
+	u.UpdateExecutor.Set(Sex, a)
 	return u
 }
-func (u *UpdateBuilder) SetMtime(a time.Time) *UpdateBuilder {
-	u.a = append(u.a, primitive.E{
-		Key:   Mtime,
-		Value: a,
-	})
+func (u *Updater) SetMtime(a time.Time) *Updater {
+	u.UpdateExecutor.Set(Mtime, a)
 	return u
-}
-
-func (u *UpdateBuilder) ByID(ctx context.Context, a primitive.ObjectID) (int64, error) {
-	ret, err := u.col.UpdateByID(ctx, a, primitive.D{primitive.E{Key: "$set", Value: u.a}})
-	if err != nil {
-		return 0, err
-	}
-	return ret.ModifiedCount, nil
-}
-
-type DeleteBuilder struct {
-	col *mongo.Collection
-}
-
-func Delete(col *mongo.Collection) *DeleteBuilder {
-	return &DeleteBuilder{col: col}
-}
-
-func (d *DeleteBuilder) ByID(ctx context.Context, a primitive.ObjectID) (int64, error) {
-	ret, err := d.col.DeleteOne(ctx, primitive.D{primitive.E{Key: "_id", Value: a}})
-	if err != nil {
-		return 0, err
-	}
-	return ret.DeletedCount, nil
 }

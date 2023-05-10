@@ -34,7 +34,7 @@ func FindUser(coll *mongo.Collection) {
 	q := mgo.And(mgo.In(Name, "aa"))
 	qq, _ := json.Marshal(q.Query())
 	fmt.Println(string(qq))
-	u, err := Find(coll).Filter(q.Query()...).Limit(1).Skip(1).Sort(Age, true).All(context.Background())
+	u, err := Find(coll).Filter(q.Query()...).Limit(1).Skip(1).SortDesc(Age).All(context.Background())
 	b, _ := json.Marshal(u)
 	fmt.Println(string(b), err)
 }
@@ -62,7 +62,7 @@ func Insert(coll *mongo.Collection) {
 		list = append(list, u)
 	}
 
-	err := Create(coll).SetUsers(list...).Save(context.TODO())
+	err := Create(coll).SetItem(list...).Save(context.TODO())
 	b, _ := json.Marshal(list)
 	fmt.Println(err, string(b))
 }
