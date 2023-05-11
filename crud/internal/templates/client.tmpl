@@ -5,7 +5,7 @@ import (
 	"database/sql"
 
 	
-	"github.com/happycrud/crud/xsql"
+	"github.com/cleancrud/crud/xsql"
 
 	{{- range $index,$table := . }}
    	"{{$table.RelativePath}}/crud/{{$table.PackageName}}"
@@ -16,9 +16,9 @@ import (
 	 {{$issqlite :=  eq (index . 0).Dialect "sqlite3"}}
 
 
-	 {{if $ismysql}}"github.com/happycrud/crud/xsql/mysql"{{end}} 
-	 {{if $ispg}}"github.com/happycrud/crud/xsql/postgres"{{end}} 
-	 {{if $issqlite}}"github.com/happycrud/crud/xsql/sqlite3"{{end}}
+	 {{if $ismysql}}"github.com/cleancrud/crud/xsql/mysql"{{end}} 
+	 {{if $ispg}}"github.com/cleancrud/crud/xsql/postgres"{{end}} 
+	 {{if $issqlite}}"github.com/cleancrud/crud/xsql/sqlite3"{{end}}
 
 )
 	

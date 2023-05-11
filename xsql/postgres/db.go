@@ -1,7 +1,7 @@
 package postgres
 
 import (
-	"github.com/happycrud/crud/xsql"
+	"github.com/cleancrud/crud/xsql"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
