@@ -24,19 +24,19 @@ var protoTmpl []byte
 //go:embed "internal/templates/service.tmpl"
 var serviceTmpl []byte
 
-//go:embed "internal/templates/client_generic.tmpl"
+//go:embed "internal/templates/client.tmpl"
 var clientGenericTmpl []byte
 
 //go:embed "internal/templates/react-grommet.tmpl"
 var reactGrommetTmpl []byte
 
-//go:embed "internal/templates/builder_mgo.tmpl"
+//go:embed "internal/templates/mgo_crud.tmpl"
 var crudMgo []byte
 
 //go:embed "internal/templates/struct2pb.tmpl"
 var struct2PB []byte
 
-//go:embed "internal/templates/generic.tmpl"
+//go:embed "internal/templates/sql_crud.tmpl"
 var genericTmpl []byte
 
 var database string

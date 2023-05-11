@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/happycrud/crud/mgo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -27,6 +28,7 @@ func TestMgo(t *testing.T) {
 	//UpdateUser(coll)
 	FindUser(coll)
 	//Insert(coll)
+	//FindUser(coll)
 }
 
 func FindUser(coll *mongo.Collection) {
@@ -34,19 +36,20 @@ func FindUser(coll *mongo.Collection) {
 	q := mgo.And(mgo.In(Name, "aa"))
 	qq, _ := json.Marshal(q.Query())
 	fmt.Println(string(qq))
-	u, err := Find(coll).Filter(q.Query()...).Limit(1).Skip(1).Sort(Age, true).All(context.Background())
+	u, err := Find(coll).Filter(q.Query()...).Limit(1).Skip(1).SortDesc(Age).All(context.Background())
 	b, _ := json.Marshal(u)
 	fmt.Println(string(b), err)
 }
 
 func UpdateUser(coll *mongo.Collection) {
-	//id, _ := primitive.ObjectIDFromHex("63ff2f14983bef62a8c881c0")
-	//Update(coll).SetName("woqu").SetAge(100).ByID(context.Background(), id)
+	id, _ := primitive.ObjectIDFromHex("645c656a09b50c4f1d80d54f")
+	x, e := Update(coll).SetName("woqu").SetAge(100).ByID(context.Background(), id)
+	fmt.Println(x, e)
 }
 
 func DeleteUser(coll *mongo.Collection) {
-	//id, _ := primitive.ObjectIDFromHex("63ff2f14983bef62a8c881c1")
-	//Delete(coll).ByID(context.Background(), id)
+	id, _ := primitive.ObjectIDFromHex("645c656a09b50c4f1d80d54f")
+	Delete(coll).ByID(context.Background(), id)
 }
 
 func Insert(coll *mongo.Collection) {
@@ -62,7 +65,7 @@ func Insert(coll *mongo.Collection) {
 		list = append(list, u)
 	}
 
-	err := Create(coll).SetUsers(list...).Save(context.TODO())
+	err := Create(coll).SetItem(list...).Save(context.TODO())
 	b, _ := json.Marshal(list)
 	fmt.Println(err, string(b))
 }
