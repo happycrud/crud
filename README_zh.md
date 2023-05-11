@@ -21,7 +21,7 @@ crud 是一个非常易学好用的ORM框架，使用crud可以让你快速，�
 - 表结构变更可以记录在仓库中
 - 支持根据SQL DDL表结构定义文件生成包含GRPC接口定义的proto文件 和 Service半实现代码
 
-## [example](https://github.com/happycrud/crud-exmaple)
+## [example](https://github.com/happycrud/crud-example)
 ## [mysql,postgresql,sqlite3 examples](./example)
 ## 开始
 
