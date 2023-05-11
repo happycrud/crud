@@ -59,13 +59,14 @@ func Find(col *mongo.Collection) *mgo.FinderExecutor[*User] {
 	return mgo.NewFinderExecutor[*User](col)
 }
 
+func Update(col *mongo.Collection) *Updater {
+	return &Updater{mgo.NewUpdateExecutor[*User](col)}
+}
+
 type Updater struct {
 	*mgo.UpdateExecutor[*User]
 }
 
-func Update(col *mongo.Collection) *Updater {
-	return &Updater{mgo.NewUpdateExecutor[*User](col)}
-}
 func (u *Updater) SetID(a primitive.ObjectID) *Updater {
 	u.UpdateExecutor.Set(ID, a)
 	return u
