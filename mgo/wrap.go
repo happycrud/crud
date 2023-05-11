@@ -125,7 +125,7 @@ func (u *UpdateExecutor[T]) Set(name string, arg any) *UpdateExecutor[T] {
 }
 
 func (u *UpdateExecutor[T]) ByID(ctx context.Context, a primitive.ObjectID) (int64, error) {
-	ret, err := u.col.UpdateByID(ctx, a, primitive.D{primitive.E{Key: "$set", Value: u.a}})
+	ret, err := u.col.UpdateByID(ctx, a, primitive.D{primitive.E{Key: "$set", Value: u.up}})
 	if err != nil {
 		return 0, err
 	}
