@@ -78,7 +78,7 @@ func (s *{{.GoTableName}}ServiceImpl) Create{{.GoTableName}}(ctx context.Context
 	a2, err := s.Client.Master.{{.GoTableName}}.
 		Find().
 		Where(
-			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}Ops.EQ(a.{{.PrimaryKey.GoColumnName}}),
+			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}Op.EQ(a.{{.PrimaryKey.GoColumnName}}),
 		).
 		One(ctx)
 	if err != nil {
@@ -92,7 +92,7 @@ func (s *{{.GoTableName}}ServiceImpl) Delete{{.GoTableName}}(ctx context.Context
 	_, err := s.Client.{{.GoTableName}}.
 		Delete().
 		Where(
-			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}Ops.EQ(req.Get{{.PrimaryKey.GoColumnName}}()),
+			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}Op.EQ(req.Get{{.PrimaryKey.GoColumnName}}()),
 		).
 		Exec(ctx)
 	if err != nil {
@@ -142,7 +142,7 @@ func (s *{{.GoTableName}}ServiceImpl) Update{{.GoTableName}}(ctx context.Context
 	}
 	_, err := update.
 		Where(
-			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}Ops.EQ(req.Get{{.GoTableName}}().Get{{.PrimaryKey.GoColumnName}}()),
+			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}Op.EQ(req.Get{{.GoTableName}}().Get{{.PrimaryKey.GoColumnName}}()),
 		).
 		Save(ctx)
 	if err != nil {
@@ -152,7 +152,7 @@ func (s *{{.GoTableName}}ServiceImpl) Update{{.GoTableName}}(ctx context.Context
 	a, err := s.Client.Master.{{.GoTableName}}.
 		Find().
 		Where(
-			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}Ops.EQ(req.Get{{.GoTableName}}().Get{{.PrimaryKey.GoColumnName}}()),
+			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}Op.EQ(req.Get{{.GoTableName}}().Get{{.PrimaryKey.GoColumnName}}()),
 		).
 		One(ctx)
 	if err != nil {
@@ -166,7 +166,7 @@ func (s *{{.GoTableName}}ServiceImpl) Get{{.GoTableName}}(ctx context.Context, r
 	a, err := s.Client.{{.GoTableName}}.
 		Find().
 		Where(
-			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}Ops.EQ(req.Get{{.PrimaryKey.GoColumnName}}()),
+			{{.PackageName}}.{{.PrimaryKey.GoColumnName}}Op.EQ(req.Get{{.PrimaryKey.GoColumnName}}()),
 		).
 		One(ctx)
 	if err != nil {
