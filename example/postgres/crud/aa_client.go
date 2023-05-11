@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/happycrud/crud/example/postgres/crud/user"
-	"github.com/happycrud/crud/xsql"
+	"github.com/cleancrud/crud/example/postgres/crud/user"
+	"github.com/cleancrud/crud/xsql"
 
-	"github.com/happycrud/crud/xsql/postgres"
+	"github.com/cleancrud/crud/xsql/postgres"
 )
 
 type Client struct {

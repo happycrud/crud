@@ -20,7 +20,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/happycrud/crud/xsql/dialect"
+	"github.com/cleancrud/crud/xsql/dialect"
 )
 
 // Querier wraps the basic Query method that is implemented

@@ -1,7 +1,7 @@
 package sqlite3
 
 import (
-	"github.com/happycrud/crud/xsql"
+	"github.com/cleancrud/crud/xsql"
 	_ "github.com/mattn/go-sqlite3"
 )
 

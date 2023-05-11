@@ -7,7 +7,7 @@ import (
 
 	"time"
 
-	"github.com/happycrud/crud/xsql/dialect"
+	"github.com/cleancrud/crud/xsql/dialect"
 )
 
 type Entity interface {

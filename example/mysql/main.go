@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/happycrud/crud/example/mysql/crud"
-	"github.com/happycrud/crud/example/mysql/crud/user"
-	"github.com/happycrud/crud/xsql"
+	"github.com/cleancrud/crud/example/mysql/crud"
+	"github.com/cleancrud/crud/example/mysql/crud/user"
+	"github.com/cleancrud/crud/xsql"
 )
 
 var db *crud.Client
