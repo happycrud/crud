@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/happycrud/crud/example/sqlite/crud/user"
-	"github.com/happycrud/crud/xsql"
-	"github.com/happycrud/crud/xsql/sqlite3"
+	"github.com/happycrud/xsql"
+	"github.com/happycrud/xsql/sqlite3"
 )
 
 var db *xsql.DB
