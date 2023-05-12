@@ -3,7 +3,7 @@ package mgo
 import (
 	"time"
 
-	"github.com/cleancrud/crud/mgo"
+	"github.com/happycrud/crud/mgo"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
