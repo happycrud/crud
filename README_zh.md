@@ -29,7 +29,7 @@ crud 是一个非常易学好用的ORM框架，使用crud可以让你快速，�
 
 ```bash
 
-go install  github.com/happycrud/crud/crud@latest
+go install  github.com/happycrud/crud/crud@main
 
 ```
 ### 使用命令行
