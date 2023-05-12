@@ -15,7 +15,7 @@ import (
 
 	_ "embed"
 
-	"github.com/cleancrud/crud/crud/internal/model"
+	"github.com/happycrud/crud/crud/internal/model"
 )
 
 //go:embed "internal/templates/proto.tmpl"

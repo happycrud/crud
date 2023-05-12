@@ -3,8 +3,8 @@
 package user
 
 import (
-	"github.com/cleancrud/crud/xsql"
-	"github.com/cleancrud/crud/xsql/dialect"
+	"github.com/happycrud/crud/xsql"
+	"github.com/happycrud/crud/xsql/dialect"
 )
 
 type User struct {

@@ -1,4 +1,4 @@
-module github.com/cleancrud/crud
+module github.com/happycrud/crud
 
 go 1.18
 

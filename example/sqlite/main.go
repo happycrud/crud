@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cleancrud/crud/example/sqlite/crud/user"
-	"github.com/cleancrud/crud/xsql"
-	"github.com/cleancrud/crud/xsql/sqlite3"
+	"github.com/happycrud/crud/example/sqlite/crud/user"
+	"github.com/happycrud/crud/xsql"
+	"github.com/happycrud/crud/xsql/sqlite3"
 )
 
 var db *xsql.DB
