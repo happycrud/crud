@@ -8,7 +8,7 @@ import (
 
 	"github.com/happycrud/crud/example/mysql/crud"
 	"github.com/happycrud/crud/example/mysql/crud/user"
-	"github.com/happycrud/crud/xsql"
+	"github.com/happycrud/xsql"
 )
 
 var db *crud.Client

@@ -5,8 +5,8 @@ package user
 import (
 	"time"
 
-	"github.com/happycrud/crud/xsql"
-	"github.com/happycrud/crud/xsql/dialect"
+	"github.com/happycrud/xsql"
+	"github.com/happycrud/xsql/dialect"
 )
 
 type User struct {
@@ -92,16 +92,20 @@ func (a *User) Values() []any {
 	return []interface{}{a.Id, a.Name, a.Age, a.Ctime, a.Mtime}
 }
 func (a *User) GetAutoIncrPk() (int64, string) {
+
 	if a.IsNil() {
 		return 0, Id
 	}
 	return a.Id, Id
+
 }
 func (a *User) SetAutoIncrPk(id int64) {
+
 	if a.IsNil() {
 		return
 	}
 	a.Id = int64(id)
+
 }
 
 func (a *User) Columns() []string {

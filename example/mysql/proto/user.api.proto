@@ -1,0 +1,74 @@
+syntax="proto3";
+option go_package = "/api";
+
+import "google/protobuf/empty.proto";
+
+service UserService { 
+    rpc CreateUser(User)returns(User);
+    rpc DeleteUser(UserId)returns(google.protobuf.Empty);
+    rpc UpdateUser(UpdateUserReq)returns(User);
+    rpc GetUser(UserId)returns(User);
+    rpc ListUsers(ListUsersReq)returns(ListUsersResp);
+}
+
+message User {
+    //id字段
+    int64	id = 1 ; // @gotags: json:"id"
+    //名称
+    string	name = 2 ; // @gotags: json:"name"
+    //年龄
+    int64	age = 3 ; // @gotags: json:"age"
+    //创建时间
+    string	ctime = 4 ; // @gotags: json:"ctime"
+    //更新时间
+    string	mtime = 5 ; // @gotags: json:"mtime"  
+}
+
+enum UserField{
+    User_unknow = 0;
+    User_id = 1;
+    User_name = 2;
+    User_age = 3;
+    User_ctime = 4;
+    User_mtime = 5;   
+}
+
+message UserId{
+    int64 id = 1 ; // @gotags: form:"id"
+}
+
+message UpdateUserReq{
+
+    User user = 1 ;
+
+    repeated string update_mask  = 2 ;
+}
+
+
+message ListUsersReq{
+    // number of page
+    int32 page = 1 ;// @gotags: form:"page"
+    // default 20
+    int32 page_size = 2 ;// @gotags: form:"page_size"
+    // order by field
+    UserField order_by_field = 3 ; // @gotags: form:"order_by_field"
+    // ASC DESC
+    bool order_by_desc = 4; //@gotags: form:"order_by_desc"
+     // filter
+    repeated UserFilter filters = 5 ; //@gotags: form:"filters"
+}
+
+message UserFilter{
+     UserField field = 1;
+    string op = 2;
+    string value = 3;
+}
+
+message ListUsersResp{
+
+    repeated User users = 1 ; // @gotags: json:"users"
+
+    int32 total_count = 2 ; // @gotags: json:"total_count"
+    
+    int32 page_count = 3 ; // @gotags: json:"page_count"
+}

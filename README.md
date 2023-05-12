@@ -42,7 +42,7 @@ Crud is a very easy to learn and easy to use ORM framework. Using crud can enabl
 
 ```bash
 
-go install  github.com/happycrud/crud/crud@main
+go install  github.com/happycrud/crud@main
 
 ```
 ### Using the command line
@@ -584,7 +584,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/happycrud/crud/xsql"
+	"github.com/happycrud/xsql"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/happycrud/crud/example/postgres/crud/user"
-	"github.com/happycrud/crud/xsql"
-	"github.com/happycrud/crud/xsql/postgres"
+	"github.com/happycrud/xsql"
+	"github.com/happycrud/xsql/postgres"
 )
 
 var db *xsql.DB

@@ -5,9 +5,9 @@ import (
 	"database/sql"
 
 	"github.com/happycrud/crud/example/postgres/crud/user"
-	"github.com/happycrud/crud/xsql"
+	"github.com/happycrud/xsql"
 
-	"github.com/happycrud/crud/xsql/postgres"
+	"github.com/happycrud/xsql/postgres"
 )
 
 type Client struct {
@@ -46,6 +46,12 @@ func NewClient(config *xsql.Config) (*Client, error) {
 	c := &Client{config: config, db: db}
 	c.init()
 	return c, nil
+}
+
+func NewClientWithDB(db *xsql.DB) *Client {
+	c := &Client{config: db.Config(), db: db}
+	c.init()
+	return c
 }
 
 func (c *Client) Begin(ctx context.Context) (*Tx, error) {
