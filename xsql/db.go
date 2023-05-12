@@ -70,6 +70,10 @@ type DB struct {
 	config *Config
 }
 
+func (db *DB) Config() *Config {
+	return db.config
+}
+
 func (db *DB) Master() *sql.DB {
 	return db.master
 }

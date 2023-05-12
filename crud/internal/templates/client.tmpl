@@ -75,6 +75,12 @@ func NewClient(config *xsql.Config) (*Client, error) {
 	return c, nil
 }
 
+func NewClientWithDB(db *xsql.DB)*Client{
+	c := &Client{config:db.Config(),db}
+	c.init()
+	return c 
+}
+
 func (c *Client) Begin(ctx context.Context) (*Tx, error) {
 	return c.BeginTx(ctx, nil)
 }
