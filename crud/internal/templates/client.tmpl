@@ -76,7 +76,7 @@ func NewClient(config *xsql.Config) (*Client, error) {
 }
 
 func NewClientWithDB(db *xsql.DB)*Client{
-	c := &Client{config:db.Config(),db}
+	c := &Client{config:db.Config(),db:db}
 	c.init()
 	return c 
 }
