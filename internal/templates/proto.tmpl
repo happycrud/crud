@@ -54,6 +54,8 @@ message List{{.GoTableName}}sReq{
     bool order_by_desc = 4; //@gotags: form:"order_by_desc"
      // filter
     repeated {{.GoTableName}}Filter filters = 5 ; //@gotags: form:"filters"
+    //  select_fields
+    repeated {{.GoTableName}}Field select_fields = 6; //gotags: form:"select_fields"
 }
 
 message {{.GoTableName}}Filter{

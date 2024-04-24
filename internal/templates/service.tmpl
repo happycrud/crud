@@ -186,8 +186,16 @@ func (s *{{.GoTableName}}ServiceImpl) List{{.GoTableName}}s(ctx context.Context,
 	if offset < 0 {
 		offset = 0
 	}
+  if len(req.GetSelectFields()) ==0 {
+	  return nil, status.Error(codes.InvalidArgument, "empty select field")
+  }
+  selectFields := make([]string,0,len(req.GetSelectFields()))
+  for _,v := range req.GetSelectFields(){
+    selectFields = append(selectFields,strings.TrimPrefix(v.String(),"{{.GoTableName}}_"))
+  }
 	finder := s.Client.{{.GoTableName}}.
 		Find().
+    Select(selectFields...).
 		Offset(offset).
 		Limit(size)
 
