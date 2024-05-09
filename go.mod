@@ -9,11 +9,7 @@ require (
 	golang.org/x/mod v0.17.0
 )
 
-require (
-	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/pganalyze/pg_query_go/v4 v4.2.3
-	google.golang.org/protobuf v1.34.0 // indirect
-)
+require google.golang.org/protobuf v1.34.0 // indirect
 
 require (
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
