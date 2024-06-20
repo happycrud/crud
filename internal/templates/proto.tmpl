@@ -55,7 +55,7 @@ message List{{.GoTableName}}sReq{
      // filter
     repeated {{.GoTableName}}Filter filters = 5 ; //@gotags: form:"filters"
     //  select_fields
-    repeated {{.GoTableName}}Field select_fields = 6; //gotags: form:"select_fields"
+    repeated {{.GoTableName}}Field select_fields = 6; //@gotags: form:"select_fields"
 }
 
 message {{.GoTableName}}Filter{
