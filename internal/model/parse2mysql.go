@@ -13,7 +13,7 @@ import (
 	"github.com/pingcap/parser/types"
 )
 
-func MysqlTable(db, path, relative string, notint64 bool, dialect string) *Table {
+func MysqlTable(db, path, relative string, dialect string) *Table {
 	sql, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
@@ -41,7 +41,7 @@ func MysqlTable(db, path, relative string, notint64 bool, dialect string) *Table
 		PackageName: strings.ToLower(gotableName),
 		Dialect:     dialect,
 	}
-	columns, err := MysqlColumn(stmt, notint64)
+	columns, err := MysqlColumn(stmt)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -62,11 +62,9 @@ func MysqlTable(db, path, relative string, notint64 bool, dialect string) *Table
 	mytable.GenerateWhereCol = mytable.Fields
 	mytable.RelativePath = relative
 	return mytable
-
 }
 
-func MysqlColumn(ddl *ast.CreateTableStmt, notint64 bool) ([]*Column, error) {
-
+func MysqlColumn(ddl *ast.CreateTableStmt) ([]*Column, error) {
 	res := []*Column{}
 	for k, v := range ddl.Cols {
 
@@ -115,7 +113,7 @@ func MysqlColumn(ddl *ast.CreateTableStmt, notint64 bool) ([]*Column, error) {
 
 		c.GoColumnName = GoCamelCase(c.ColumnName)
 		c.GoColumnType, c.BigType = MysqlToGoFieldType(c.DataType, c.ColumnType)
-		if strings.Contains(c.GoColumnType, "int") && !notint64 {
+		if strings.Contains(c.GoColumnType, "int") {
 			c.GoColumnType = "int64"
 		}
 		c.GoConditionType = c.GoColumnType

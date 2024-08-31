@@ -8,7 +8,7 @@ import (
 	"github.com/rqlite/sql"
 )
 
-func Sqlite3Table(db, path, relative string, notint64 bool, dialect string) *Table {
+func Sqlite3Table(db, path, relative string, dialect string) *Table {
 	sqlstr, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
@@ -31,7 +31,7 @@ func Sqlite3Table(db, path, relative string, notint64 bool, dialect string) *Tab
 		PackageName: strings.ToLower(gotableName),
 		Dialect:     dialect,
 	}
-	columns, err := Sqlite3Column(ct, notint64)
+	columns, err := Sqlite3Column(ct)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -52,10 +52,9 @@ func Sqlite3Table(db, path, relative string, notint64 bool, dialect string) *Tab
 	mytable.GenerateWhereCol = mytable.Fields
 	mytable.RelativePath = relative
 	return mytable
-
 }
 
-func Sqlite3Column(ddl *sql.CreateTableStatement, notint64 bool) ([]*Column, error) {
+func Sqlite3Column(ddl *sql.CreateTableStatement) ([]*Column, error) {
 	res := []*Column{}
 	for k, v := range ddl.Columns {
 
@@ -94,7 +93,7 @@ func Sqlite3Column(ddl *sql.CreateTableStatement, notint64 bool) ([]*Column, err
 
 		c.GoColumnName = GoCamelCase(c.ColumnName)
 		c.GoColumnType, c.BigType = Sqlite3ToGoFieldType(c.DataType, c.ColumnType)
-		if strings.Contains(c.GoColumnType, "int") && !notint64 {
+		if strings.Contains(c.GoColumnType, "int") {
 			c.GoColumnType = "int64"
 		}
 		c.GoConditionType = c.GoColumnType
@@ -106,7 +105,6 @@ func Sqlite3Column(ddl *sql.CreateTableStatement, notint64 bool) ([]*Column, err
 	}
 	var primaryKey string
 	for _, v := range ddl.Constraints {
-
 		if x, ok := v.(*sql.PrimaryKeyConstraint); ok {
 			if len(x.Columns) > 1 {
 				log.Fatal("primary key is not single column")

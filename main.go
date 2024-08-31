@@ -2,18 +2,15 @@ package main
 
 import (
 	"bytes"
+	_ "embed"
 	"flag"
-	"io/ioutil"
-	"os/exec"
-	"path/filepath"
-
 	"go/format"
 	"log"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"text/template"
-
-	_ "embed"
 
 	"github.com/happycrud/crud/internal/model"
 )
@@ -27,53 +24,34 @@ var serviceTmpl []byte
 //go:embed "internal/templates/client.tmpl"
 var clientGenericTmpl []byte
 
-//go:embed "internal/templates/react-grommet.tmpl"
-var reactGrommetTmpl []byte
-
-//go:embed "internal/templates/mgo_crud.tmpl"
-var crudMgo []byte
-
-//go:embed "internal/templates/struct2pb.tmpl"
-var struct2PB []byte
-
 //go:embed "internal/templates/sql_crud.tmpl"
 var genericTmpl []byte
 
-var database string
-var path string
-var service bool
-var http bool
-var protopkg string
-var reactgrommet bool
-var mgo string
-var struct2pb string
-var notint64 bool
-var dialect string
+var (
+	database string
+	path     string
+	service  bool
+	protopkg string
+	dialect  string
+)
 
 // var fields string
 const defaultDir = "crud"
 
 func init() {
-	//flag.StringVar(&path, "path", "cr", ".sql file path or folder")
 	flag.BoolVar(&service, "service", false, "-service  generate GRPC proto message and service implementation")
-	flag.BoolVar(&http, "http", false, "-http  generate Gin controller")
-	flag.BoolVar(&notint64, "notint64", false, "-notint64  do not generate intger field to int64 gotype")
-	flag.BoolVar(&reactgrommet, "reactgrommet", false, "-reactgrommet  generate reactgrommet tsx code work with -service")
 	flag.StringVar(&protopkg, "protopkg", "", "-protopkg  proto package field value")
 	flag.StringVar(&dialect, "dialect", "mysql", "-dialete only support mysql postgres sqlite3, default mysql ")
-	flag.StringVar(&mgo, "mgo", "", "-mgo find struct from file and generate crud method example  ./user.go:User  User struct in ./user.go file ")
-	flag.StringVar(&struct2pb, "struct2pb", "", "-struct2pb find struct from file and generate corresponding proto message  ./user.go:User  User struct in ./user.go file ")
 }
 
 func main() {
-
 	flag.Parse()
 
 	// subcommand
 	if len(os.Args) == 2 {
 		switch os.Args[1] {
 		case "init":
-			//create crud dir
+			// create crud dir
 			if err := os.Mkdir(defaultDir, os.ModePerm); err != nil {
 				log.Fatal(err)
 			}
@@ -95,36 +73,6 @@ func main() {
 		}
 	}
 
-	if mgo != "" {
-		pathName := strings.Split(mgo, ":")
-		if len(pathName) != 2 {
-			log.Fatalf("-mgo not right example ./user.go:User")
-		}
-		filePath := pathName[0]
-		structName := pathName[1]
-		doc := model.ParseMongoStruct(filePath, structName)
-		generateFile(filePath, string(crudMgo), nil, doc)
-		return
-	}
-	if struct2pb != "" {
-		pathName := strings.Split(struct2pb, ":")
-		if len(pathName) != 2 {
-			log.Fatalf("-struct2pb not right example ./user.go:User")
-		}
-		filePath := pathName[0]
-		structName := pathName[1]
-		message := model.ParseStruct(filePath, structName)
-		tpl, err := template.New("").Funcs(f).Parse(string(struct2PB))
-		if err != nil {
-			log.Fatalln(err)
-		}
-		err = tpl.Execute(os.Stdout, message)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		return
-	}
 	if path == "" {
 		path = defaultDir
 	}
@@ -135,7 +83,6 @@ func main() {
 	if isDir && path == defaultDir {
 		generateFile(filepath.Join(defaultDir, "aa_client.go"), string(clientGenericTmpl), f, tableObjs)
 	}
-
 }
 
 func tableFromSql(path string) (tableObjs []*model.Table, isDir bool) {
@@ -146,7 +93,7 @@ func tableFromSql(path string) (tableObjs []*model.Table, isDir bool) {
 	}
 	if info.IsDir() {
 		isDir = true
-		fs, err := ioutil.ReadDir(path)
+		fs, err := os.ReadDir(path)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -154,46 +101,43 @@ func tableFromSql(path string) (tableObjs []*model.Table, isDir bool) {
 			if !v.IsDir() && strings.HasSuffix(strings.ToLower(v.Name()), ".sql") {
 				switch dialect {
 				case "mysql":
-					obj := model.MysqlTable(database, filepath.Join(path, v.Name()), relativePath, notint64, dialect)
+					obj := model.MysqlTable(database, filepath.Join(path, v.Name()), relativePath, dialect)
 					if obj != nil {
 						tableObjs = append(tableObjs, obj)
 					}
 				case "postgres":
-					obj := model.PostgresTable(database, filepath.Join(path, v.Name()), relativePath, notint64, dialect)
+					obj := model.PostgresTable(database, filepath.Join(path, v.Name()), relativePath, dialect)
 					if obj != nil {
 						tableObjs = append(tableObjs, obj)
 					}
 				case "sqlite3":
-					obj := model.Sqlite3Table(database, filepath.Join(path, v.Name()), relativePath, notint64, dialect)
+					obj := model.Sqlite3Table(database, filepath.Join(path, v.Name()), relativePath, dialect)
 					if obj != nil {
 						tableObjs = append(tableObjs, obj)
 					}
 
 				}
-
 			}
-
 		}
 	} else {
 		switch dialect {
 		case "mysql":
-			obj := model.MysqlTable(database, path, relativePath, notint64, dialect)
+			obj := model.MysqlTable(database, path, relativePath, dialect)
 			if obj != nil {
 				tableObjs = append(tableObjs, obj)
 			}
 		case "postgres":
-			obj := model.PostgresTable(database, path, relativePath, notint64, dialect)
+			obj := model.PostgresTable(database, path, relativePath, dialect)
 			if obj != nil {
 				tableObjs = append(tableObjs, obj)
 			}
 		case "sqlite3":
-			obj := model.Sqlite3Table(database, path, relativePath, notint64, dialect)
+			obj := model.Sqlite3Table(database, path, relativePath, dialect)
 			if obj != nil {
 				tableObjs = append(tableObjs, obj)
 			}
 
 		}
-
 	}
 	return tableObjs, isDir
 }
@@ -207,16 +151,15 @@ var f = template.FuncMap{
 }
 
 func generateFiles(tableObj *model.Table) {
-
-	//创建目录
+	// 创建目录
 	dir := filepath.Join(defaultDir, tableObj.PackageName)
 	os.Mkdir(dir, os.ModePerm)
 	generateFile(filepath.Join(dir, tableObj.PackageName+".go"), string(genericTmpl), f, tableObj)
 	if service {
 		generateService(tableObj)
 	}
-
 }
+
 func generateService(tableObj *model.Table) {
 	pkgName := tableObj.PackageName
 	tableObj.Protopkg = protopkg
@@ -227,11 +170,7 @@ func generateService(tableObj *model.Table) {
 
 	// proto-go  grpc
 	var cmd *exec.Cmd
-	if http {
-		cmd = exec.Command("protoc", "-I.", "--go_out=.", "--go-grpc_out=.", "--go-gin_out=.", filepath.Join("proto", pkgName+".api.proto"))
-	} else {
-		cmd = exec.Command("protoc", "-I.", "--go_out=.", "--go-grpc_out=.", filepath.Join("proto", pkgName+".api.proto"))
-	}
+	cmd = exec.Command("protoc", "-I.", "--go_out=.", "--go-grpc_out=.", filepath.Join("proto", pkgName+".api.proto"))
 
 	cmd.Dir = filepath.Join(model.GetCurrentPath())
 	log.Println(cmd.Dir, "exec:", cmd.String())
@@ -249,10 +188,6 @@ func generateService(tableObj *model.Table) {
 	}
 
 	generateFile(filepath.Join("service", pkgName+".service.go"), string(serviceTmpl), f, tableObj)
-
-	if reactgrommet {
-		generateFile(filepath.Join("web", "src", "pages", pkgName+".tsx"), string(reactGrommetTmpl), f, tableObj)
-	}
 }
 
 func generateFile(filename, tmpl string, f template.FuncMap, data interface{}) {

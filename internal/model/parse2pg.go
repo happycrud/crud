@@ -8,7 +8,7 @@ import (
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 )
 
-func PostgresTable(db, path, relative string, notint64 bool, dialect string) *Table {
+func PostgresTable(db, path, relative string, dialect string) *Table {
 	sqlstr, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
@@ -33,7 +33,7 @@ func PostgresTable(db, path, relative string, notint64 bool, dialect string) *Ta
 		PackageName: strings.ToLower(gotableName),
 		Dialect:     dialect,
 	}
-	columns, err := PostgresColumn(st, notint64)
+	columns, err := PostgresColumn(st)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func PostgresTable(db, path, relative string, notint64 bool, dialect string) *Ta
 	return mytable
 }
 
-func PostgresColumn(ddl *pg_query.CreateStmt, notint64 bool) ([]*Column, error) {
+func PostgresColumn(ddl *pg_query.CreateStmt) ([]*Column, error) {
 	res := []*Column{}
 	for k, vv := range ddl.GetTableElts() {
 		v := vv.GetColumnDef()
@@ -103,7 +103,7 @@ func PostgresColumn(ddl *pg_query.CreateStmt, notint64 bool) ([]*Column, error) 
 
 		c.GoColumnName = GoCamelCase(c.ColumnName)
 		c.GoColumnType, c.BigType = PostgresToGoFieldType(c.DataType, c.ColumnType)
-		if strings.Contains(c.GoColumnType, "int") && !notint64 {
+		if strings.Contains(c.GoColumnType, "int") {
 			c.GoColumnType = "int64"
 		}
 		c.GoConditionType = c.GoColumnType

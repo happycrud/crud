@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -108,7 +107,6 @@ func SQLTool(t *Table, flag string) string {
 		default:
 			ns = append(ns, flag)
 		}
-
 	}
 	return strings.Join(ns, ",")
 }
@@ -203,9 +201,11 @@ func JSONSnakeCase(s string) string {
 func isASCIILower(c byte) bool {
 	return 'a' <= c && c <= 'z'
 }
+
 func isASCIIUpper(c byte) bool {
 	return 'A' <= c && c <= 'Z'
 }
+
 func isASCIIDigit(c byte) bool {
 	return '0' <= c && c <= '9'
 }
@@ -227,7 +227,7 @@ func GetModuleName() (string, string) {
 	if mod == "" {
 		return "", ""
 	}
-	f, err := ioutil.ReadFile(mod)
+	f, err := os.ReadFile(mod)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -266,5 +266,4 @@ func GoModFilePath() string {
 		}
 	}
 	return ""
-
 }
