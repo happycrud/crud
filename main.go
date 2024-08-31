@@ -178,14 +178,6 @@ func generateService(tableObj *model.Table) {
 	if err != nil {
 		log.Println(string(s), err)
 	}
-	// inject-tag
-	cmd = exec.Command("protoc-go-inject-tag", "-input", filepath.Join("api", pkgName+".api.pb.go"))
-	cmd.Dir = filepath.Join(model.GetCurrentPath())
-	log.Println(cmd.Dir, "exec:", cmd.String())
-	s, err = cmd.CombinedOutput()
-	if err != nil {
-		log.Println(string(s), err)
-	}
 
 	generateFile(filepath.Join("service", pkgName+".service.go"), string(serviceTmpl), f, tableObj)
 }

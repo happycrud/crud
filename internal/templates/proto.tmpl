@@ -20,7 +20,7 @@ message {{.GoTableName}} {
 
 {{- range $index,$field := .Fields }}
     //{{$field.ColumnComment}}
-    {{$field.ProtoType }}	{{ $field.ColumnName }} = {{Incr $index}} ; // @gotags: json:"{{$field.ColumnName}}"
+    {{$field.ProtoType }}	{{ $field.ColumnName }} = {{Incr $index}} ; 
 {{- end}}  
 }
 
@@ -32,30 +32,28 @@ enum {{.GoTableName}}Field{
 }
 
 message {{.GoTableName}}{{.PrimaryKey.GoColumnName}}{
-    {{.PrimaryKey.ProtoType}} {{.PrimaryKey.ColumnName}} = 1 ; // @gotags: form:"id"
+    {{.PrimaryKey.ProtoType}} {{.PrimaryKey.ColumnName}} = 1 ; 
 }
 
 message Update{{.GoTableName}}Req{
-
     {{.GoTableName}} {{.TableName}} = 1 ;
-
     repeated string update_mask  = 2 ;
 }
 
 
 message List{{.GoTableName}}sReq{
     // number of page
-    int32 page = 1 ;// @gotags: form:"page"
+    int32 page = 1 ;
     // default 20
-    int32 page_size = 2 ;// @gotags: form:"page_size"
+    int32 page_size = 2 ;
     // order by field
-    {{.GoTableName}}Field order_by_field = 3 ; // @gotags: form:"order_by_field"
+    {{.GoTableName}}Field order_by_field = 3 ; 
     // ASC DESC
-    bool order_by_desc = 4; //@gotags: form:"order_by_desc"
+    bool order_by_desc = 4; 
      // filter
-    repeated {{.GoTableName}}Filter filters = 5 ; //@gotags: form:"filters"
+    repeated {{.GoTableName}}Filter filters = 5 ; 
     //  select_fields
-    repeated {{.GoTableName}}Field select_fields = 6; //@gotags: form:"select_fields"
+    repeated {{.GoTableName}}Field select_fields = 6; 
 }
 
 message {{.GoTableName}}Filter{
@@ -65,10 +63,7 @@ message {{.GoTableName}}Filter{
 }
 
 message List{{.GoTableName}}sResp{
-
-    repeated {{.GoTableName}} {{.TableName}}s = 1 ; // @gotags: json:"{{.TableName}}s"
-
-    int32 total_count = 2 ; // @gotags: json:"total_count"
-    
-    int32 page_count = 3 ; // @gotags: json:"page_count"
-}
+    repeated {{.GoTableName}} {{.TableName}}s = 1 ; 
+    int32 total_count = 2 ;   
+    int32 page_count = 3 ; 
+  }
