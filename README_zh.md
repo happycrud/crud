@@ -38,20 +38,10 @@ go install  github.com/happycrud/crud@main
 Usage of crud:
   -dialect string
     	-dialete only support mysql postgres sqlite3, default mysql  (default "mysql")
-  -http
-    	-http  generate Gin controller
-  -mgo string
-    	-mgo find struct from file and generate crud method example  ./user.go:User  User struct in ./user.go file
-  -notint64
-    	-notint64  do not generate intger field to int64 gotype
   -protopkg string
     	-protopkg  proto package field value
-  -reactgrommet
-    	-reactgrommet  generate reactgrommet tsx code work with -service
   -service
     	-service  generate GRPC proto message and service implementation
-  -struct2pb string
-    	-struct2pb find struct from file and generate corresponding proto message  ./user.go:User  User struct in ./user.go file 
 ```
 
 ```mysql example
