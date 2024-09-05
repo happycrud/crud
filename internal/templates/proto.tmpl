@@ -37,7 +37,7 @@ message {{.GoTableName}}{{.PrimaryKey.GoColumnName}}{
 
 message Update{{.GoTableName}}Req{
     {{.GoTableName}} {{.TableName}} = 1 ;
-    repeated string update_mask  = 2 ;
+    repeated {{.GoTableName}}Field update_mask  = 2 ;
 }
 
 
