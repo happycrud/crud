@@ -80,6 +80,7 @@ func PostgresColumn(ddl *pg_query.CreateStmt) ([]*Column, error) {
 		if strings.Contains(columnType, "serial") {
 			autoIncrement = true
 		}
+		arrayDime := len(v.GetTypeName().GetArrayBounds())
 		for _, v2 := range v.GetConstraints() {
 			if v2.GetConstraint().Contype == pg_query.ConstrType_CONSTR_PRIMARY {
 				primaryKey = true
@@ -100,10 +101,12 @@ func PostgresColumn(ddl *pg_query.CreateStmt) ([]*Column, error) {
 			BigType:                   0,
 			GoConditionType:           "",
 		}
-
+		if arrayDime == 1 {
+			c.PostgresArray = true
+		}
 		c.GoColumnName = GoCamelCase(c.ColumnName)
-		c.GoColumnType, c.BigType = PostgresToGoFieldType(c.DataType, c.ColumnType)
-		if strings.Contains(c.GoColumnType, "int") {
+		c.GoColumnType, c.BigType = PostgresToGoFieldType(c.DataType, c.ColumnType, arrayDime)
+		if strings.Contains(c.GoColumnType, "int") && !strings.Contains(c.GoColumnType, "[]") {
 			c.GoColumnType = "int64"
 		}
 		c.GoConditionType = c.GoColumnType
@@ -133,7 +136,7 @@ func PostgresColumn(ddl *pg_query.CreateStmt) ([]*Column, error) {
 	return res, nil
 }
 
-func PostgresToGoFieldType(dt, ct string) (string, int) {
+func PostgresToGoFieldType(dt, ct string, arrayDime int) (string, int) {
 	var unsigned bool
 	if strings.Contains(ct, "unsigned") {
 		unsigned = true
@@ -152,15 +155,15 @@ func PostgresToGoFieldType(dt, ct string) (string, int) {
 	case "text", "json":
 		typ = "string"
 	case "tinyint":
-		typ = "int8"
+		typ = "int32"
 		if unsigned {
-			typ = "uint8"
+			typ = "uint32"
 		}
 		gtp = bigtypeCompare
 	case "smallint", "int2", "serial2", "smallserial":
-		typ = "int16"
+		typ = "int32"
 		if unsigned {
-			typ = "uint16"
+			typ = "uint32"
 		}
 		gtp = bigtypeCompare
 	case "int4", "int", "integer", "serial4", "serial":
@@ -194,6 +197,11 @@ func PostgresToGoFieldType(dt, ct string) (string, int) {
 		gtp = bigtypeCompare
 	default:
 		typ = "UNKNOWN"
+	}
+	if arrayDime == 1 {
+		typ = "[]" + typ
+	} else if arrayDime > 1 {
+		log.Fatalf("crud not support postresql  dimension of array type  > 1")
 	}
 	return typ, gtp
 }

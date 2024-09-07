@@ -13,7 +13,7 @@ type Table struct {
 	ImportTime       bool      // is need import time
 	RelativePath     string
 	Protopkg         string
-	Dialect          string //mysql postgres sqlite3
+	Dialect          string // mysql postgres sqlite3
 }
 
 // Column Column
@@ -32,4 +32,5 @@ type Column struct {
 	BigType                   int    // 0 表示不生成where 1 表示比较类型 2表示比较类型+字符串 3表示比较类型，修改传入参数
 	GoConditionType           string // 生成where 的类型参数
 	ProtoType                 string // protoType
+	PostgresArray             bool
 }

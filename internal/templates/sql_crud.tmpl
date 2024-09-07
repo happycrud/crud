@@ -62,8 +62,12 @@ func (u *{{.GoTableName}}) ScanDst(aa any, columns []string) []any {
 			switch v {
 			{{- range .Fields}}
    			case {{.GoColumnName}}:
-			dst = append(dst, &a.{{.GoColumnName}})
-    		{{- end }}
+         {{- if .PostgresArray}}
+			    dst = append(dst , xsql.PgxMap().SQLScanner(&a.{{.GoColumnName}}))
+          {{- else}}
+          dst = append(dst, &a.{{.GoColumnName}})
+    		 {{- end}}
+        {{- end }}
 		}
 		}
 		return dst

@@ -161,15 +161,15 @@ func MysqlToGoFieldType(dt, ct string) (string, int) {
 	case "tinytext", "text", "mediumtext", "longtext", "json":
 		typ = "string"
 	case "tinyint":
-		typ = "int8"
+		typ = "int32"
 		if unsigned {
-			typ = "uint8"
+			typ = "uint32"
 		}
 		gtp = bigtypeCompare
 	case "smallint":
-		typ = "int16"
+		typ = "int32"
 		if unsigned {
-			typ = "uint16"
+			typ = "uint32"
 		}
 		gtp = bigtypeCompare
 	case "mediumint", "int", "integer":
