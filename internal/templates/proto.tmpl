@@ -20,7 +20,7 @@ message {{.GoTableName}} {
 
 {{- range $index,$field := .Fields }}
     //{{$field.ColumnComment}}
-    {{$field.ProtoType }}	{{ $field.ColumnName }} = {{Incr $index}} ; 
+  {{if $field.PostgresArray}} repeated {{end}}  {{$field.ProtoType }}	{{ $field.ColumnName }} = {{Incr $index}} ; 
 {{- end}}  
 }
 

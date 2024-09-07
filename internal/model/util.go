@@ -33,23 +33,23 @@ func GoTypeToProtoType(g string) string {
 	switch g {
 	case "[]byte":
 		return "bytes"
-	case "bool":
+	case "[]bool", "bool":
 		return "bool"
-	case "string":
+	case "[]string", "string":
 		return "string"
-	case "float32":
+	case "[]float32", "float32":
 		return "float"
-	case "float64":
+	case "[]float64", "float64":
 		return "double"
-	case "int8", "int16", "int32":
+	case "[]int8", "[]int16", "[]int32", "int8", "int16", "int32":
 		return "int32"
-	case "uint8", "uint16", "uint32":
+	case "[]uint8", "[]uint16", "[]uint32", "uint8", "uint16", "uint32":
 		return "uint32"
-	case "int", "int64":
+	case "[]int", "[]int64", "int", "int64":
 		return "int64"
-	case "uint64":
+	case "[]uint64", "uint64":
 		return "uint64"
-	case "time.Time":
+	case "[]time.Time", "time.Time":
 		return "string"
 	default:
 		return ""
