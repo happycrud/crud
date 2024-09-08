@@ -108,11 +108,11 @@ func (s *{{.GoTableName}}ServiceImpl) Update{{.GoTableName}}(ctx context.Context
 			return nil, err
 		}
 	}
-	if len(req.GetUpdateMask()) == 0 {
+	if len(req.GetMasks()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "empty filter condition")
 	}
 	update := s.Client.{{.GoTableName}}.Update()
-	for _, v := range req.GetUpdateMask() {
+	for _, v := range req.GetMasks() {
 		switch v {	
 		{{- range $index,$field := .Fields }}
 		
@@ -186,11 +186,11 @@ func (s *{{.GoTableName}}ServiceImpl) List{{.GoTableName}}s(ctx context.Context,
 	if offset < 0 {
 		offset = 0
 	}
-  if len(req.GetSelectFields()) ==0 {
+  if len(req.GetFields()) ==0 {
 	  return nil, status.Error(codes.InvalidArgument, "empty select field")
   }
-  selectFields := make([]string,0,len(req.GetSelectFields()))
-  for _,v := range req.GetSelectFields(){
+  selectFields := make([]string,0,len(req.GetFields()))
+  for _,v := range req.GetFields(){
     selectFields = append(selectFields,strings.TrimPrefix(v.String(),"{{.GoTableName}}_"))
   }
 	finder := s.Client.{{.GoTableName}}.
@@ -199,11 +199,11 @@ func (s *{{.GoTableName}}ServiceImpl) List{{.GoTableName}}s(ctx context.Context,
 		Offset(offset).
 		Limit(size)
 
-	if req.GetOrderByField() == api.{{.GoTableName}}Field_{{.GoTableName}}_unknow {
-		req.OrderByField = api.{{.GoTableName}}Field_{{.GoTableName}}_{{.PrimaryKey.ColumnName}}
+	if req.GetOrderby() == api.{{.GoTableName}}Field_{{.GoTableName}}_unknow {
+		req.Orderby = api.{{.GoTableName}}Field_{{.GoTableName}}_{{.PrimaryKey.ColumnName}}
 	}
-	odb := strings.TrimPrefix(req.GetOrderByField().String(), "{{.GoTableName}}_")
-	if req.GetOrderByDesc() {
+	odb := strings.TrimPrefix(req.GetOrderby().String(), "{{.GoTableName}}_")
+	if req.GetDesc() {
 		finder.OrderDesc(odb)
 	} else {
 		finder.OrderAsc(odb)
@@ -214,7 +214,7 @@ func (s *{{.GoTableName}}ServiceImpl) List{{.GoTableName}}s(ctx context.Context,
 
 	var ps []*xsql.Predicate
 	for _, v := range req.GetFilters() {
-		p, err := xsql.GenP(strings.TrimPrefix(v.Field.String(), "{{.GoTableName}}_"), v.Op, v.Value)
+		p, err := xsql.GenP(strings.TrimPrefix(v.Field.String(), "{{.GoTableName}}_"), v.Op, v.Val)
 		if err != nil {
 			return nil, err
 		}

@@ -37,29 +37,23 @@ message {{.GoTableName}}{{.PrimaryKey.GoColumnName}}{
 
 message Update{{.GoTableName}}Req{
     {{.GoTableName}} {{.TableName}} = 1 ;
-    repeated {{.GoTableName}}Field update_mask  = 2 ;
+    repeated {{.GoTableName}}Field masks  = 2 ;
 }
 
 
 message List{{.GoTableName}}sReq{
-    // number of page
     int32 page = 1 ;
-    // default 20
     int32 page_size = 2 ;
-    // order by field
-    {{.GoTableName}}Field order_by_field = 3 ; 
-    // ASC DESC
-    bool order_by_desc = 4; 
-     // filter
+    {{.GoTableName}}Field orderby = 3 ; 
+    bool desc = 4; 
     repeated {{.GoTableName}}Filter filters = 5 ; 
-    //  select_fields
-    repeated {{.GoTableName}}Field select_fields = 6; 
+    repeated {{.GoTableName}}Field fields = 6; 
 }
 
 message {{.GoTableName}}Filter{
      {{.GoTableName}}Field field = 1;
     string op = 2;
-    string value = 3;
+    string val = 3;
 }
 
 message List{{.GoTableName}}sResp{

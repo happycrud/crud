@@ -77,6 +77,8 @@ func MysqlColumn(ddl *ast.CreateTableStmt) ([]*Column, error) {
 		var autoIncrement bool
 		var primaryKey bool
 		var comment string
+		var gotags string
+		inputType := "text"
 		for _, v2 := range v.Options {
 			switch v2.Tp {
 			case ast.ColumnOptionDefaultValue:
@@ -85,6 +87,12 @@ func MysqlColumn(ddl *ast.CreateTableStmt) ([]*Column, error) {
 				}
 			case ast.ColumnOptionComment:
 				comment = v2.Expr.(*test_driver.ValueExpr).GetString()
+				commentList := strings.Split(comment, "|")
+				if len(commentList) == 3 {
+					comment = commentList[0]
+					inputType = commentList[1]
+					gotags = commentList[2]
+				}
 			case ast.ColumnOptionNotNull:
 				notNull = true
 			case ast.ColumnOptionAutoIncrement:
@@ -109,6 +117,8 @@ func MysqlColumn(ddl *ast.CreateTableStmt) ([]*Column, error) {
 			GoColumnType:              "",
 			BigType:                   0,
 			GoConditionType:           "",
+			GoTags:                    gotags,
+			HTMLInputType:             inputType,
 		}
 
 		c.GoColumnName = GoCamelCase(c.ColumnName)

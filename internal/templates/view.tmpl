@@ -61,12 +61,12 @@ templ {{.GoTableName}}CreateView() {
     hx-target="this"
 		hx-swap="outerHTML"
 	>
-		<input type="text" id="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}" name="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}" disabled/>
+		<input type="{{.PrimaryKey.HTMLInputType}}" id="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}" name="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}" disabled/>
 
 	 {{- range $index,$field := .Fields }}
    {{- if eq $field.IsPrimaryKey false}} 
     <input
-			type="text"
+		  type="{{$field.HTMLInputType}}"
 			name="{{$tableName}}.{{$field.GoColumnName}}"
 		/>
     {{- end}}
@@ -97,7 +97,7 @@ templ {{.GoTableName}}UpdateView(a *api.{{.GoTableName}}) {
 			<lable for="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}">{{.PrimaryKey.GoColumnName}}:</lable>
 			<input
 				disabled
-				type="text"
+				type="{{.PrimaryKey.HTMLInputType}}"
 				id="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}"
 				name="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}"
 				value={ fmt.Sprintf("%d",a.{{.PrimaryKey.GoColumnName}}) }
@@ -108,7 +108,7 @@ templ {{.GoTableName}}UpdateView(a *api.{{.GoTableName}}) {
     <div>
 			<lable for="{{$tableName}}.{{$field.GoColumnName}}">{{$field.GoColumnName}}:</lable>
 			<input
-				type="text"
+				type="{{$field.HTMLInputType}}"
 				id="{{$tableName}}.{{$field.GoColumnName}}"
 				name="{{$tableName}}.{{$field.GoColumnName}}"
 				value={ fmt.Sprintf("%v",a.{{$field.GoColumnName}}) }
@@ -121,7 +121,7 @@ templ {{.GoTableName}}UpdateView(a *api.{{.GoTableName}}) {
 
 	{{- range $index,$field := .Fields }}
   {{- if eq $field.IsPrimaryKey false}} 
-		<input hidden id="{{$tableName}}.{{$field.GoColumnName}}.Mask" name="UpdateMask"/>
+		<input hidden id="{{$tableName}}.{{$field.GoColumnName}}.Mask" name="Masks"/>
 	{{- end}}
   {{- end}}
 	</form>
