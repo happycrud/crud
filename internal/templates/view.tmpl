@@ -5,7 +5,7 @@ import "fmt"
 import 	"{{.RelativePath}}/api"
 {{ $pkgName := .PackageName}}
 {{ $tableName := .GoTableName}}
-
+{{ $protopkg := .Protopkg}}
 
 templ {{.GoTableName}}Shell() {
 	<div>
@@ -52,7 +52,7 @@ templ {{.GoTableName}}CreatePage() {
 templ {{.GoTableName}}CreateView() {
 	<form
 		hx-boost="true"
-		hx-put="/{{.GoTableName}}Service/Create{{.GoTableName}}"
+		hx-put="/{{$protopkg}}.{{.GoTableName}}Service/Create{{.GoTableName}}"
 		hx-target="this"
 		hx-swap="outerHTML"
 	>
@@ -79,7 +79,7 @@ templ {{.GoTableName}}UpdatePage(a *api.{{.GoTableName}}) {
 templ {{.GoTableName}}UpdateView(a *api.{{.GoTableName}}) {
 	<form
 		hx-boost="true"
-		hx-post={ "/{{.GoTableName}}Service/Update{{.GoTableName}}?{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}=" + fmt.Sprintf("%d",a.{{.PrimaryKey.GoColumnName}}) }
+		hx-post={ "/{{$protopkg}}.{{.GoTableName}}Service/Update{{.GoTableName}}?{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}=" + fmt.Sprintf("%d",a.{{.PrimaryKey.GoColumnName}}) }
 		hx-target="this"
 		hx-swap="outerHTML"
 	>
