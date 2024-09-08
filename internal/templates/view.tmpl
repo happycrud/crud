@@ -1,0 +1,118 @@
+
+package views
+
+import "fmt"
+import 	"{{.RelativePath}}/api"
+{{ $pkgName := .PackageName}}
+{{ $tableName := .GoTableName}}
+
+
+templ {{.GoTableName}}Shell() {
+	<div>
+			{ children... }
+	</div>
+}
+
+templ {{.GoTableName}}ListPage(resp *api.List{{.GoTableName}}sResp) {
+	@{{.GoTableName}}Shell() {
+		@{{.GoTableName}}ListView(resp)
+	}
+}
+
+templ {{.GoTableName}}ListView(resp *api.List{{.GoTableName}}sResp) {
+	<div id="{{.GoTableName}}ListView">
+		for idx,a :=range resp.Get{{.GoTableName}}s() {
+			@{{.GoTableName}}ItemView(idx, a)
+		}
+	</div>
+}
+
+templ {{.GoTableName}}ItemView(idx int, a *api.{{.GoTableName}}) {
+	<div id={ fmt.Sprintf("{{.GoTableName}}Item_%d", idx) }>
+		// todo
+	</div>
+}
+
+templ {{.GoTableName}}DetailPage(a *api.{{.GoTableName}}) {
+	@{{.GoTableName}}Shell() {
+		@{{.GoTableName}}DetailView(a)
+	}
+}
+
+templ {{.GoTableName}}DetailView(a *api.{{.GoTableName}}) {
+	<div></div>
+}
+
+templ {{.GoTableName}}CreatePage() {
+	@{{.GoTableName}}Shell() {
+		@{{.GoTableName}}CreateView()
+	}
+}
+
+templ {{.GoTableName}}CreateView() {
+	<form
+		hx-boost="true"
+		hx-put="/{{.GoTableName}}Service/Create{{.GoTableName}}"
+		hx-target="this"
+		hx-swap="outerHTML"
+	>
+		<input type="text" id="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}" name="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}" disabled/>
+
+	 {{- range $index,$field := .Fields }}
+   {{- if eq $field.IsPrimaryKey false}} 
+    <input
+			type="text"
+			name="{{$tableName}}.{{$field.GoColumnName}}"
+		/>
+    {{- end}}
+    {{- end}}
+		<input type="submit" value="submit"/>
+	</form>
+}
+
+templ {{.GoTableName}}UpdatePage(a *api.{{.GoTableName}}) {
+	@{{.GoTableName}}Shell() {
+		@{{.GoTableName}}UpdateView(a)
+	}
+}
+
+templ {{.GoTableName}}UpdateView(a *api.{{.GoTableName}}) {
+	<form
+		hx-boost="true"
+		hx-post={ "/{{.GoTableName}}Service/Update{{.GoTableName}}?{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}=" + fmt.Sprintf("%d",a.{{.PrimaryKey.GoColumnName}}) }
+		hx-target="this"
+		hx-swap="outerHTML"
+	>
+		<div>
+			<lable for="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}">{{.PrimaryKey.GoColumnName}}:</lable>
+			<input
+				disabled
+				type="text"
+				id="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}"
+				name="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}"
+				value={ fmt.Sprintf("%d",a.{{.PrimaryKey.GoColumnName}}) }
+			/>
+		</div>  
+	 {{- range $index,$field := .Fields }}
+   {{- if eq $field.IsPrimaryKey false}} 
+    <div>
+			<lable for="{{$tableName}}.{{$field.GoColumnName}}">{{$field.GoColumnName}}:</lable>
+			<input
+				type="text"
+				id="{{$tableName}}.{{$field.GoColumnName}}"
+				name="{{$tableName}}.{{$field.GoColumnName}}"
+				value={ fmt.Sprintf("%v",a.Name) }
+				hx-on:change="document.getElementById('{{$tableName}}.{{$field.GoColumnName}}.Mask').value = '{{Incr $index}}';"
+			/>
+		</div>
+	{{- end }}
+  {{- end}}
+		<input type="submit" value="submit"/>
+
+	{{- range $index,$field := .Fields }}
+  {{- if eq $field.IsPrimaryKey false}} 
+		<input hidden id="{{$tableName}}.{{$field.GoColumnName}}.Mask" name="UpdateMask"/>
+	{{- end}}
+  {{- end}}
+	</form>
+}
