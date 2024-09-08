@@ -144,7 +144,7 @@ func (h *{{.GoTableName}}Handler) Create{{.GoTableName}}Handle(w http.ResponseWr
 		case h1.ResponseHTMX:
 			views.{{.GoTableName}}CreateView().Render(req.Context(), w)
 		default:
-			views.{{.GoTableName}}CreateView().Render(req.Context(), w)
+			views.{{.GoTableName}}CreatePage().Render(req.Context(), w)
 		}
 		return
 	}

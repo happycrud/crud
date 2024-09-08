@@ -52,8 +52,13 @@ templ {{.GoTableName}}CreatePage() {
 templ {{.GoTableName}}CreateView() {
 	<form
 		hx-boost="true"
+    {{- if eq $protopkg ""}}
+		hx-put="/{{.GoTableName}}Service/Create{{.GoTableName}}"
+		{{- else}}
+
 		hx-put="/{{$protopkg}}.{{.GoTableName}}Service/Create{{.GoTableName}}"
-		hx-target="this"
+{{- end}}
+    hx-target="this"
 		hx-swap="outerHTML"
 	>
 		<input type="text" id="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}" name="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}" disabled/>
@@ -79,8 +84,13 @@ templ {{.GoTableName}}UpdatePage(a *api.{{.GoTableName}}) {
 templ {{.GoTableName}}UpdateView(a *api.{{.GoTableName}}) {
 	<form
 		hx-boost="true"
-		hx-post={ "/{{$protopkg}}.{{.GoTableName}}Service/Update{{.GoTableName}}?{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}=" + fmt.Sprintf("%d",a.{{.PrimaryKey.GoColumnName}}) }
-		hx-target="this"
+    {{- if eq $protopkg ""}}
+		hx-post={ "/{{.GoTableName}}Service/Update{{.GoTableName}}?{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}=" + fmt.Sprintf("%d",a.{{.PrimaryKey.GoColumnName}}) }
+		{{- else}}
+    hx-post={ "/{{$protopkg}}.{{.GoTableName}}Service/Update{{.GoTableName}}?{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}=" + fmt.Sprintf("%d",a.{{.PrimaryKey.GoColumnName}}) }
+
+    {{- end}}
+    hx-target="this"
 		hx-swap="outerHTML"
 	>
 		<div>
@@ -101,7 +111,7 @@ templ {{.GoTableName}}UpdateView(a *api.{{.GoTableName}}) {
 				type="text"
 				id="{{$tableName}}.{{$field.GoColumnName}}"
 				name="{{$tableName}}.{{$field.GoColumnName}}"
-				value={ fmt.Sprintf("%v",a.Name) }
+				value={ fmt.Sprintf("%v",a.{{$field.GoColumnName}}) }
 				hx-on:change="document.getElementById('{{$tableName}}.{{$field.GoColumnName}}.Mask').value = '{{Incr $index}}';"
 			/>
 		</div>
