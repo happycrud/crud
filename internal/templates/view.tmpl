@@ -107,13 +107,25 @@ templ {{.GoTableName}}UpdateView(a *api.{{.GoTableName}}) {
    {{- if eq $field.IsPrimaryKey false}} 
     <div>
 			<lable for="{{$tableName}}.{{$field.GoColumnName}}">{{$field.GoColumnName}}:</lable>
-			<input
+			{{- if eq $field.HTMLInputType "select"}}
+      <select 	
+        id="{{$tableName}}.{{$field.GoColumnName}}"
+				name="{{$tableName}}.{{$field.GoColumnName}}"
+				>
+         {{- range $key,$val := $field.EnumValues}}
+         <option value="{{$key}}">{{$val}}</option>
+         {{- end}}
+      </select>
+
+      {{- else}}
+      <input
 				type="{{$field.HTMLInputType}}"
 				id="{{$tableName}}.{{$field.GoColumnName}}"
 				name="{{$tableName}}.{{$field.GoColumnName}}"
 				value={ fmt.Sprintf("%v",a.{{$field.GoColumnName}}) }
-				hx-on:change="document.getElementById('{{$tableName}}.{{$field.GoColumnName}}.Mask').value = '{{Incr $index}}';"
+				hx-on:change="document.getElementById('{{$tableName}}.{{$field.GoColumnName}}.Mask').checked = true;"
 			/>
+      {{- end}}
 		</div>
 	{{- end }}
   {{- end}}
@@ -121,7 +133,7 @@ templ {{.GoTableName}}UpdateView(a *api.{{.GoTableName}}) {
 
 	{{- range $index,$field := .Fields }}
   {{- if eq $field.IsPrimaryKey false}} 
-		<input hidden id="{{$tableName}}.{{$field.GoColumnName}}.Mask" name="Masks"/>
+		<input type="checkbox" value="{{$index}}" hidden id="{{$tableName}}.{{$field.GoColumnName}}.Mask" name="Masks"/>
 	{{- end}}
   {{- end}}
 	</form>

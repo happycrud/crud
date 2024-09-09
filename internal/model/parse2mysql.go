@@ -3,6 +3,7 @@ package model
 import (
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/pingcap/parser"
@@ -78,6 +79,7 @@ func MysqlColumn(ddl *ast.CreateTableStmt) ([]*Column, error) {
 		var primaryKey bool
 		var comment string
 		var gotags string
+		var enumval map[int]string
 		inputType := "text"
 		for _, v2 := range v.Options {
 			switch v2.Tp {
@@ -88,11 +90,25 @@ func MysqlColumn(ddl *ast.CreateTableStmt) ([]*Column, error) {
 			case ast.ColumnOptionComment:
 				comment = v2.Expr.(*test_driver.ValueExpr).GetString()
 				commentList := strings.Split(comment, "|")
-				if len(commentList) == 3 {
+				if len(commentList) >= 3 {
 					comment = commentList[0]
 					inputType = commentList[1]
 					gotags = commentList[2]
 				}
+				if len(commentList) == 4 && commentList[1] == "select" {
+					enumval = make(map[int]string)
+					enumlist := strings.Split(commentList[3], " ")
+					for _, item := range enumlist {
+						kv := strings.Split(item, ":")
+						if len(kv) == 2 {
+							if key, err := strconv.Atoi(kv[0]); err == nil {
+								enumval[key] = kv[1]
+							}
+						}
+					}
+
+				}
+
 			case ast.ColumnOptionNotNull:
 				notNull = true
 			case ast.ColumnOptionAutoIncrement:
@@ -119,6 +135,7 @@ func MysqlColumn(ddl *ast.CreateTableStmt) ([]*Column, error) {
 			GoConditionType:           "",
 			GoTags:                    gotags,
 			HTMLInputType:             inputType,
+			EnumValues:                enumval,
 		}
 
 		c.GoColumnName = GoCamelCase(c.ColumnName)

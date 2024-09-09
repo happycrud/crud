@@ -102,7 +102,7 @@ func PostgresColumn(ddl *pg_query.CreateStmt) ([]*Column, error) {
 			GoConditionType:           "",
 		}
 		if arrayDime == 1 {
-			c.PostgresArray = true
+			c.IsPostgresArray = true
 		}
 		c.GoColumnName = GoCamelCase(c.ColumnName)
 		c.GoColumnType, c.BigType = PostgresToGoFieldType(c.DataType, c.ColumnType, arrayDime)

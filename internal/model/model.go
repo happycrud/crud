@@ -18,21 +18,22 @@ type Table struct {
 
 // Column Column
 type Column struct {
-	OrdinalPosition           int    // field_ordinal
-	ColumnName                string // column_name
-	DataType                  string // data_type
-	ColumnType                string // column_type
-	ColumnComment             string // column_comment,
-	NotNull                   bool   // not_null
-	IsPrimaryKey              bool   // is_primary_key
-	IsAutoIncrment            bool   // is_auto_incrment
-	IsDefaultCurrentTimestamp bool   // is_default_currenttimestamp
-	GoColumnName              string // go field name
-	GoColumnType              string // go field type
-	BigType                   int    // 0 表示不生成where 1 表示比较类型 2表示比较类型+字符串 3表示比较类型，修改传入参数
-	GoConditionType           string // 生成where 的类型参数
-	ProtoType                 string // protoType
-	PostgresArray             bool   // is posggres array type
-	HTMLInputType             string // for  input type
-	GoTags                    string // protobuf gen gotag
+	OrdinalPosition           int            // field_ordinal
+	ColumnName                string         // column_name
+	DataType                  string         // data_type
+	ColumnType                string         // column_type
+	ColumnComment             string         // column_comment,
+	NotNull                   bool           // not_null
+	IsPrimaryKey              bool           // is_primary_key
+	IsAutoIncrment            bool           // is_auto_incrment
+	IsDefaultCurrentTimestamp bool           // is_default_currenttimestamp
+	GoColumnName              string         // go field name
+	GoColumnType              string         // go field type
+	BigType                   int            // 0 表示不生成where 1 表示比较类型 2表示比较类型+字符串 3表示比较类型，修改传入参数
+	GoConditionType           string         // 生成where 的类型参数
+	ProtoType                 string         // protoType
+	IsPostgresArray           bool           // is posggres array type
+	HTMLInputType             string         // for  input type
+	GoTags                    string         // protobuf gen gotag
+	EnumValues                map[int]string // value -> lable
 }
