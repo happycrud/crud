@@ -13,6 +13,7 @@ import (
 	"text/template"
 
 	"github.com/happycrud/crud/internal/model"
+	"github.com/happycrud/crud/internal/tag"
 )
 
 //go:embed "internal/templates/proto.tmpl"
@@ -185,6 +186,13 @@ func generateService(tableObj *model.Table) {
 	s, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Println(string(s), err)
+	}
+	pbfile := filepath.Join("api", pkgName+".api.pb.go")
+	ara, err := tag.ParseFile(pbfile, nil, nil)
+	if err != nil {
+		log.Printf("err:%v", err)
+	} else {
+		tag.WriteFile(pbfile, ara, false)
 	}
 
 	generateFile(filepath.Join("service", pkgName+".service.go"), string(serviceTmpl), f, tableObj)
