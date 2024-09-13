@@ -8,9 +8,11 @@ import 	"{{.RelativePath}}/api"
 {{ $protopkg := .Protopkg}}
 
 templ {{.GoTableName}}Shell() {
-	<div>
+ @Index(){
+<div>
 			{ children... }
 	</div>
+ }
 }
 
 templ {{.GoTableName}}ListPage(resp *api.List{{.GoTableName}}sResp) {
@@ -111,9 +113,15 @@ templ {{.GoTableName}}UpdateView(a *api.{{.GoTableName}}) {
       <select 	
         id="{{$tableName}}.{{$field.GoColumnName}}"
 				name="{{$tableName}}.{{$field.GoColumnName}}"
-				>
+				value={ fmt.Sprintf("%v",a.{{$field.GoColumnName}}) }
+				hx-on:change="document.getElementById('{{$tableName}}.{{$field.GoColumnName}}.Mask').checked = true;"
+      >
          {{- range $key,$val := $field.EnumValues}}
-         <option value="{{$key}}">{{$val}}</option>
+         if a.{{$field.GoColumnName}} == {{$key}}{
+            <option value="{{$key}}" selected>{{$val}}</option>
+         }else{
+            <option value="{{$key}}">{{$val}}</option>
+         }
          {{- end}}
       </select>
 
@@ -133,7 +141,7 @@ templ {{.GoTableName}}UpdateView(a *api.{{.GoTableName}}) {
 
 	{{- range $index,$field := .Fields }}
   {{- if eq $field.IsPrimaryKey false}} 
-		<input type="checkbox" value="{{$index}}" hidden id="{{$tableName}}.{{$field.GoColumnName}}.Mask" name="Masks"/>
+		<input type="checkbox" value="{{Incr $index}}" hidden id="{{$tableName}}.{{$field.GoColumnName}}.Mask" name="Masks"/>
 	{{- end}}
   {{- end}}
 	</form>
