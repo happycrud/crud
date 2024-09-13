@@ -28,7 +28,7 @@ templ {{.GoTableName}}ListPage(resp *api.List{{.GoTableName}}sResp,path string, 
 
 templ {{.GoTableName}}ListView(resp *api.List{{.GoTableName}}sResp,path string,form url.Values) {
 	@ui.PaginationView(
-		"User", path, form, http.CaculatePaginator(resp.GetPage(), resp.GetPageSize(), resp.GetTotalCount())) {
+		"{{.GoTableName}}", path, form, http.CaculatePaginator(resp.GetPage(), resp.GetPageSize(), resp.GetTotalCount())) {
   <table>
     <tr>
   {{- range $index,$field := .Fields }}
