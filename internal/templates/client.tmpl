@@ -15,7 +15,6 @@ import (
 	 {{$ispg :=  eq (index . 0).Dialect "postgres"}}
 	 {{$issqlite :=  eq (index . 0).Dialect "sqlite3"}}
 
-
 	 {{if $ismysql}}"github.com/happycrud/xsql/mysql"{{end}} 
 	 {{if $ispg}}"github.com/happycrud/xsql/postgres"{{end}} 
 	 {{if $issqlite}}"github.com/happycrud/xsql/sqlite3"{{end}}
@@ -27,6 +26,7 @@ type Client struct {
 	config *xsql.Config
 	db     *xsql.DB
 	Master *ClientM
+  debug bool
 	{{- range $index,$table := . }}
    	{{$table.GoTableName}} *{{$table.GoTableName}}Client
 	{{- end}} 
@@ -39,12 +39,21 @@ type ClientM struct{
 }
 
 func (c *Client) init() {
+  	var eqx xsql.ExecQuerier
+	var eqxm xsql.ExecQuerier
+	eqx = c.db
+	eqxm = c.db.Master()
+	if c.debug {
+		eqx = xsql.Debug(c.db)
+		eqxm = xsql.Debug(c.db.Master())
+	}
+
 	{{- range $index,$table := . }}
-   	c.{{$table.GoTableName}} =  &{{$table.GoTableName}}Client{eq: c.db, config: c.config}
+   	c.{{$table.GoTableName}} =  &{{$table.GoTableName}}Client{eq: eqx, config: c.config}
 	{{- end}} 
 	c.Master = &ClientM{
 	{{- range $index,$table := . }}
-   		{{$table.GoTableName}}:  &{{$table.GoTableName}}Client{eq: c.db.Master(), config: c.config},
+   		{{$table.GoTableName}}:  &{{$table.GoTableName}}Client{eq: eqxm, config: c.config},
 	{{- end}} 	
 
 	}
@@ -65,18 +74,18 @@ func (tx *Tx) init() {
 	{{- end}} 
 }
 
-func NewClient(config *xsql.Config) (*Client, error) {
+func NewClient(config *xsql.Config,debug bool) (*Client, error) {
 	db, err := {{if $ismysql}}mysql{{end}} {{if $ispg}}postgres{{end}} {{if $issqlite}}sqlite3{{end}}.NewDB(config)
 	if err != nil {
 		return nil, err
 	}
-	c := &Client{config: config, db: db}
+	c := &Client{config: config, db: db,debug:debug}
 	c.init()
 	return c, nil
 }
 
-func NewClientWithDB(db *xsql.DB)*Client{
-	c := &Client{config:db.Config(),db:db}
+func NewClientWithDB(db *xsql.DB,debug bool)*Client{
+	c := &Client{config:db.Config(),db:db,debug:debug}
 	c.init()
 	return c 
 }

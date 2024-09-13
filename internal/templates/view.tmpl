@@ -3,6 +3,11 @@ package views
 
 import "fmt"
 import 	"{{.RelativePath}}/api"
+import "github.com/happycrud/golib/net/http/ui"
+import "github.com/happycrud/golib/net/http"
+import "net/url"
+
+
 {{ $pkgName := .PackageName}}
 {{ $tableName := .GoTableName}}
 {{ $protopkg := .Protopkg}}
@@ -15,24 +20,34 @@ templ {{.GoTableName}}Shell() {
  }
 }
 
-templ {{.GoTableName}}ListPage(resp *api.List{{.GoTableName}}sResp) {
+templ {{.GoTableName}}ListPage(resp *api.List{{.GoTableName}}sResp,path string, form url.Values) {
 	@{{.GoTableName}}Shell() {
-		@{{.GoTableName}}ListView(resp)
+		@{{.GoTableName}}ListView(resp,path,form)
 	}
 }
 
-templ {{.GoTableName}}ListView(resp *api.List{{.GoTableName}}sResp) {
-	<div id="{{.GoTableName}}ListView">
+templ {{.GoTableName}}ListView(resp *api.List{{.GoTableName}}sResp,path string,form url.Values) {
+	@ui.PaginationView(
+		"User", path, form, http.CaculatePaginator(resp.GetPage(), resp.GetPageSize(), resp.GetTotalCount())) {
+  <table>
+    <tr>
+  {{- range $index,$field := .Fields }}
+  <th>{{$field.GoColumnName}}</th>
+  {{- end}}
+    </tr>
 		for idx,a :=range resp.Get{{.GoTableName}}s() {
 			@{{.GoTableName}}ItemView(idx, a)
 		}
-	</div>
+  </table>
+  }
 }
 
 templ {{.GoTableName}}ItemView(idx int, a *api.{{.GoTableName}}) {
-	<div id={ fmt.Sprintf("{{.GoTableName}}Item_%d", idx) }>
-		// todo
-	</div>
+	<tr id={ fmt.Sprintf("{{.GoTableName}}Item_%d", idx) }>
+		{{- range $index,$field := .Fields}}
+     <td>{fmt.Sprintf("%v",a.{{$field.GoColumnName}})}</td>
+    {{- end}}
+	</tr>
 }
 
 templ {{.GoTableName}}DetailPage(a *api.{{.GoTableName}}) {
@@ -42,7 +57,13 @@ templ {{.GoTableName}}DetailPage(a *api.{{.GoTableName}}) {
 }
 
 templ {{.GoTableName}}DetailView(a *api.{{.GoTableName}}) {
-	<div></div>
+	
+  {{- range $index,$field := .Fields }}
+  <div>
+  <lable for="{{$field.GoColumnName}}">{{$field.GoColumnName}}:</lable>
+  <div>{fmt.Sprintf("%v", a.{{$field.GoColumnName}}) }</div>
+  </div>
+  {{- end}}
 }
 
 templ {{.GoTableName}}CreatePage() {
@@ -63,14 +84,32 @@ templ {{.GoTableName}}CreateView() {
     hx-target="this"
 		hx-swap="outerHTML"
 	>
-		<input type="{{.PrimaryKey.HTMLInputType}}" id="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}" name="{{.GoTableName}}.{{.PrimaryKey.GoColumnName}}" disabled/>
-
+  <div>
+  <lable for="{{.PrimaryKey.GoColumnName}}">{{.PrimaryKey.GoColumnName}}</lable>
+		<input type="{{.PrimaryKey.HTMLInputType}}" id="{{.PrimaryKey.GoColumnName}}" name="{{.PrimaryKey.GoColumnName}}" disabled/>
+</div>
 	 {{- range $index,$field := .Fields }}
    {{- if eq $field.IsPrimaryKey false}} 
-    <input
-		  type="{{$field.HTMLInputType}}"
-			name="{{$tableName}}.{{$field.GoColumnName}}"
-		/>
+    <div>
+			<lable for="{{$field.GoColumnName}}">{{$field.GoColumnName}}:</lable>
+			{{- if eq $field.HTMLInputType "select"}}
+      <select 	
+        id="{{$field.GoColumnName}}"
+				name="{{$field.GoColumnName}}"
+      >
+         {{- range $key,$val := $field.EnumValues}}
+            <option value="{{$key}}">{{$val}}</option>
+         {{- end}}
+      </select>
+
+      {{- else}}
+      <input
+				type="{{$field.HTMLInputType}}"
+				id="{{$field.GoColumnName}}"
+				name="{{$field.GoColumnName}}"
+			/>
+      {{- end}}
+		</div>
     {{- end}}
     {{- end}}
 		<input type="submit" value="submit"/>

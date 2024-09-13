@@ -1,6 +1,8 @@
 module github.com/happycrud/crud
 
-go 1.18
+go 1.22.3
+
+toolchain go1.22.5
 
 require (
 	github.com/pganalyze/pg_query_go/v5 v5.1.0
@@ -22,9 +24,8 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
+	golang.org/x/text v0.3.6 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 )
-
-require golang.org/x/text v0.15.0 // indirect
 
 retract [v1.0.0, v1.0.1]

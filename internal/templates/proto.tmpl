@@ -60,4 +60,6 @@ message List{{.GoTableName}}sResp{
     repeated {{.GoTableName}} {{.TableName}}s = 1 ; 
     int32 total_count = 2 ;   
     int32 page_count = 3 ; 
-  }
+    int32 page_size = 4;
+    int32 page = 5;
+}

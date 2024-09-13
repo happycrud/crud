@@ -63,9 +63,9 @@ func (h *{{.GoTableName}}Handler) List{{.GoTableName}}sHandle(w http.ResponseWri
 		d, _ := json.Marshal(resp)
 		w.Write(d)
 	case h1.ResponseHTMX:
-		views.{{.GoTableName}}ListView(resp).Render(req.Context(), w)
+		views.{{.GoTableName}}ListView(resp,req.URL.Path,req.Form).Render(req.Context(), w)
 	case h1.ResponseHTML:
-		views.{{.GoTableName}}ListPage(resp).Render(req.Context(), w)
+		views.{{.GoTableName}}ListPage(resp,req.URL.Path,req.Form).Render(req.Context(), w)
 	}
 }
 
