@@ -7,7 +7,7 @@ toolchain go1.22.5
 require (
 	github.com/pganalyze/pg_query_go/v5 v5.1.0
 	github.com/pingcap/parser v0.0.0-20220622031236-3bca03d3057b
-	github.com/rqlite/sql v0.0.0-20240312185922-ffac88a740bd
+	github.com/rqlite/sql v0.0.0-20221103124402-8f9ff0ceb8f0
 	golang.org/x/mod v0.17.0
 )
 
