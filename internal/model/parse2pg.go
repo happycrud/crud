@@ -3,7 +3,6 @@ package model
 import (
 	"log"
 	"os"
-	"strconv"
 	"strings"
 
 	pg_query "github.com/pganalyze/pg_query_go/v5"
@@ -18,7 +17,7 @@ func PostgresTable(db, path, relative string, dialect string) *Table {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if len(p.GetStmts()) == 1 {
+	if len(p.GetStmts()) < 1 {
 		log.Fatal("not hava a table stmt")
 	}
 	st := p.GetStmts()[0].GetStmt().GetCreateStmt()
@@ -37,7 +36,8 @@ func PostgresTable(db, path, relative string, dialect string) *Table {
 		PackageName: strings.ToLower(gotableName),
 		Dialect:     dialect,
 	}
-	columns, err := PostgresColumn(schemaName, tableName, st, p)
+	annotations := GetColumnAnnotations(string(sqlstr))
+	columns, err := PostgresColumn(st, annotations)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,26 +61,8 @@ func PostgresTable(db, path, relative string, dialect string) *Table {
 	return mytable
 }
 
-func GetComments(schemaName, table string, p *pg_query.ParseResult) map[string]string {
-	ret := make(map[string]string)
-	for _, v := range p.GetStmts() {
-		c := v.GetStmt().GetCommentStmt()
-		if c == nil {
-			continue
-		}
-		items := c.GetObject().GetList().GetItems()
-		if len(items) == 3 {
-			if items[0].GetString_().GetSval() == schemaName && items[1].GetString_().GetSval() == table {
-				ret[items[2].GetString_().GetSval()] = c.GetComment()
-			}
-		}
-	}
-	return ret
-}
-
-func PostgresColumn(scheme, table string, ddl *pg_query.CreateStmt, p *pg_query.ParseResult) ([]*Column, error) {
+func PostgresColumn(ddl *pg_query.CreateStmt, annotations map[string]*ColumnAnnotation) ([]*Column, error) {
 	res := []*Column{}
-	fieldComment := GetComments(scheme, table, p)
 	for k, vv := range ddl.GetTableElts() {
 		v := vv.GetColumnDef()
 		if v == nil {
@@ -90,9 +72,6 @@ func PostgresColumn(scheme, table string, ddl *pg_query.CreateStmt, p *pg_query.
 		var autoIncrement bool
 		var primaryKey bool
 		var comment string
-		var inputType string
-		var gotags string
-		var enumval map[int]string
 		notNull = v.GetIsNotNull()
 		var columnType string
 		names := v.GetTypeName().GetNames()
@@ -110,27 +89,6 @@ func PostgresColumn(scheme, table string, ddl *pg_query.CreateStmt, p *pg_query.
 				primaryKey = true
 			}
 		}
-		comment = fieldComment[v.GetColname()]
-		commentList := strings.Split(comment, "|")
-		if len(commentList) >= 3 {
-			comment = commentList[0]
-			inputType = commentList[1]
-			gotags = commentList[2]
-		}
-		if len(commentList) == 4 && commentList[1] == "select" {
-			enumval = make(map[int]string)
-			enumlist := strings.Split(commentList[3], " ")
-			for _, item := range enumlist {
-				kv := strings.Split(item, ":")
-				if len(kv) == 2 {
-					if key, err := strconv.Atoi(kv[0]); err == nil {
-						enumval[key] = kv[1]
-					}
-				}
-			}
-
-		}
-
 		c := &Column{
 			OrdinalPosition:           k,
 			ColumnName:                v.GetColname(),
@@ -145,9 +103,14 @@ func PostgresColumn(scheme, table string, ddl *pg_query.CreateStmt, p *pg_query.
 			GoColumnType:              "",
 			BigType:                   0,
 			GoConditionType:           "",
-			HTMLInputType:             inputType,
-			GoTags:                    gotags,
-			EnumValues:                enumval,
+			HTMLInputType:             "text",
+		}
+		if anno, ok := annotations[c.ColumnName]; ok {
+			c.GoTags = anno.GoTags
+			if anno.HTMLInputType != "" {
+				c.HTMLInputType = anno.HTMLInputType
+			}
+			c.EnumValues = anno.SelectEnum
 		}
 		if arrayDime == 1 {
 			c.IsPostgresArray = true

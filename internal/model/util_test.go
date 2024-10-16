@@ -13,11 +13,18 @@ import (
 	"github.com/rqlite/sql"
 )
 
-func TestGoModFilePath(t *testing.T) {
+func TestGetColumnComment(t *testing.T) {
+	text := `
+	--id:'id|text'
+	--name:'姓名|text|validate:"gt 1"'
+	`
+	lt := GetColumnAnnotations(text)
+	fmt.Println(lt)
+}
 
+func TestGoModFilePath(t *testing.T) {
 	got := GoModFilePath()
 	fmt.Println(got)
-
 }
 
 const user_table_sqlite = `
@@ -74,7 +81,6 @@ func TestPgParse(t *testing.T) {
 		panic(err)
 	}
 	fmt.Println(x.GetStmts()[0].GetStmt())
-
 }
 
 func TestMysqlParse(t *testing.T) {
