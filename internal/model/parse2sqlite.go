@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -14,6 +13,7 @@ func Sqlite3Table(db, path, relative string, dialect string) *Table {
 	if err != nil {
 		log.Fatal(err)
 	}
+	annotations := GetColumnAnnotations(string(sqlstr))
 	p := sql.NewParser(strings.NewReader(string(sqlstr)))
 	st, err := p.ParseStatement()
 	if err != nil {
@@ -32,7 +32,7 @@ func Sqlite3Table(db, path, relative string, dialect string) *Table {
 		PackageName: strings.ToLower(gotableName),
 		Dialect:     dialect,
 	}
-	columns, err := Sqlite3Column(ct)
+	columns, err := Sqlite3Column(ct, annotations)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,7 +55,7 @@ func Sqlite3Table(db, path, relative string, dialect string) *Table {
 	return mytable
 }
 
-func Sqlite3Column(ddl *sql.CreateTableStatement) ([]*Column, error) {
+func Sqlite3Column(ddl *sql.CreateTableStatement, annotations map[string]*ColumnAnnotation) ([]*Column, error) {
 	res := []*Column{}
 	for k, v := range ddl.Columns {
 
@@ -90,6 +90,15 @@ func Sqlite3Column(ddl *sql.CreateTableStatement) ([]*Column, error) {
 			GoColumnType:              "",
 			BigType:                   0,
 			GoConditionType:           "",
+			HTMLInputType:             "text",
+		}
+
+		if anno, ok := annotations[c.ColumnName]; ok {
+			c.GoTags = anno.GoTags
+			if anno.HTMLInputType != "" {
+				c.HTMLInputType = anno.HTMLInputType
+			}
+			c.EnumValues = anno.SelectEnum
 		}
 
 		c.GoColumnName = GoCamelCase(c.ColumnName)

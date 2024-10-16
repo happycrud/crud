@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"golang.org/x/mod/modfile"
@@ -266,4 +268,48 @@ func GoModFilePath() string {
 		}
 	}
 	return ""
+}
+
+const pattern = `--(\w+):'(.*)'`
+
+var re = regexp.MustCompile(pattern)
+
+func GetColumnAnnotations(text string) map[string]*ColumnAnnotation {
+	matches := re.FindAllStringSubmatch(text, -1)
+	ret := make(map[string]*ColumnAnnotation)
+	for _, match := range matches {
+		if len(match) == 3 {
+			x := &ColumnAnnotation{}
+			comment := match[2]
+			commentList := strings.Split(comment, "|")
+			if len(commentList) >= 3 {
+				x.HTMLName = commentList[0]
+				x.HTMLInputType = commentList[1]
+				x.GoTags = commentList[2]
+			}
+			if len(commentList) == 4 && commentList[1] == "select" {
+				enumval := make(map[int]string)
+				enumlist := strings.Split(commentList[3], " ")
+				for _, item := range enumlist {
+					kv := strings.Split(item, ":")
+					if len(kv) == 2 {
+						if key, err := strconv.Atoi(kv[0]); err == nil {
+							enumval[key] = kv[1]
+						}
+					}
+				}
+				x.SelectEnum = enumval
+
+			}
+			ret[match[1]] = x
+		}
+	}
+	return ret
+}
+
+type ColumnAnnotation struct {
+	HTMLName      string
+	HTMLInputType string
+	SelectEnum    map[int]string
+	GoTags        string
 }

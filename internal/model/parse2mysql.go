@@ -3,7 +3,6 @@ package model
 import (
 	"log"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/pingcap/parser"
@@ -19,7 +18,7 @@ func MysqlTable(db, path, relative string, dialect string) *Table {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	annotations := GetColumnAnnotations(string(sql))
 	p, _, err := parser.New().Parse(string(sql), "", "")
 	if err != nil {
 		log.Fatal(err)
@@ -42,7 +41,7 @@ func MysqlTable(db, path, relative string, dialect string) *Table {
 		PackageName: strings.ToLower(gotableName),
 		Dialect:     dialect,
 	}
-	columns, err := MysqlColumn(stmt)
+	columns, err := MysqlColumn(stmt, annotations)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,7 +64,7 @@ func MysqlTable(db, path, relative string, dialect string) *Table {
 	return mytable
 }
 
-func MysqlColumn(ddl *ast.CreateTableStmt) ([]*Column, error) {
+func MysqlColumn(ddl *ast.CreateTableStmt, annotations map[string]*ColumnAnnotation) ([]*Column, error) {
 	res := []*Column{}
 	for k, v := range ddl.Cols {
 
@@ -78,9 +77,7 @@ func MysqlColumn(ddl *ast.CreateTableStmt) ([]*Column, error) {
 		var autoIncrement bool
 		var primaryKey bool
 		var comment string
-		var gotags string
-		var enumval map[int]string
-		inputType := "text"
+
 		for _, v2 := range v.Options {
 			switch v2.Tp {
 			case ast.ColumnOptionDefaultValue:
@@ -89,25 +86,6 @@ func MysqlColumn(ddl *ast.CreateTableStmt) ([]*Column, error) {
 				}
 			case ast.ColumnOptionComment:
 				comment = v2.Expr.(*test_driver.ValueExpr).GetString()
-				commentList := strings.Split(comment, "|")
-				if len(commentList) >= 3 {
-					comment = commentList[0]
-					inputType = commentList[1]
-					gotags = commentList[2]
-				}
-				if len(commentList) == 4 && commentList[1] == "select" {
-					enumval = make(map[int]string)
-					enumlist := strings.Split(commentList[3], " ")
-					for _, item := range enumlist {
-						kv := strings.Split(item, ":")
-						if len(kv) == 2 {
-							if key, err := strconv.Atoi(kv[0]); err == nil {
-								enumval[key] = kv[1]
-							}
-						}
-					}
-
-				}
 
 			case ast.ColumnOptionNotNull:
 				notNull = true
@@ -133,11 +111,15 @@ func MysqlColumn(ddl *ast.CreateTableStmt) ([]*Column, error) {
 			GoColumnType:              "",
 			BigType:                   0,
 			GoConditionType:           "",
-			GoTags:                    gotags,
-			HTMLInputType:             inputType,
-			EnumValues:                enumval,
+			HTMLInputType:             "text",
 		}
-
+		if anno, ok := annotations[c.ColumnName]; ok {
+			c.GoTags = anno.GoTags
+			if anno.HTMLInputType != "" {
+				c.HTMLInputType = anno.HTMLInputType
+			}
+			c.EnumValues = anno.SelectEnum
+		}
 		c.GoColumnName = GoCamelCase(c.ColumnName)
 		c.GoColumnType, c.BigType = MysqlToGoFieldType(c.DataType, c.ColumnType)
 		if strings.Contains(c.GoColumnType, "int") {
